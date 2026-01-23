@@ -18,7 +18,7 @@ import {
 } from 'react-native';
 import { useSecurityMetrics } from '../hooks/useSecurityMetrics';
 import { MetricsQueryParams } from '../types';
-import { SecurityEventTrendChart } from '../components/SecurityEventTrendChart';
+import { SecurityEventTrendChart, ZoneSelector } from '../components';
 import { ExportManager } from '../services';
 
 interface SecurityScreenProps {
@@ -29,21 +29,38 @@ interface SecurityScreenProps {
 export default function SecurityScreen({ zoneId, zoneName = 'Unknown Zone' }: SecurityScreenProps) {
   const [refreshing, setRefreshing] = useState(false);
   const [exporting, setExporting] = useState(false);
+  const [timeRange, setTimeRange] = useState<'24h' | '7d' | '30d'>('24h');
 
-  // Get today's date range (start of day to now)
-  const getTodayRange = (): { startDate: Date; endDate: Date } => {
+  // Calculate date ranges based on selected time range
+  const dateRanges = useMemo(() => {
     const now = new Date();
-    const startOfDay = new Date(now);
-    startOfDay.setHours(0, 0, 0, 0);
-    return { startDate: startOfDay, endDate: now };
-  };
+    const endDate = now;
+    let startDate: Date;
+    let granularity: 'hour' | 'day' = 'hour';
+
+    switch (timeRange) {
+      case '24h':
+        startDate = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+        granularity = 'hour';
+        break;
+      case '7d':
+        startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+        granularity = 'day';
+        break;
+      case '30d':
+        startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+        granularity = 'day';
+        break;
+    }
+
+    return { startDate, endDate, granularity };
+  }, [timeRange]);
 
   // Query parameters for today - memoized to prevent infinite loops
   const todayParams: MetricsQueryParams = useMemo(() => ({
     zoneId,
-    ...getTodayRange(),
-    granularity: 'hour',
-  }), [zoneId]);
+    ...dateRanges,
+  }), [zoneId, dateRanges]);
 
   // Fetch security metrics
   const {
@@ -86,9 +103,8 @@ export default function SecurityScreen({ zoneId, zoneName = 'Unknown Zone' }: Se
         plan: 'Unknown',
       };
 
-      const { startDate, endDate } = getTodayRange();
-      const timeRange = { start: startDate, end: endDate };
-      await ExportManager.exportSecurityMetrics(data, zone, timeRange);
+      const timeRangeObj = { start: dateRanges.startDate, end: dateRanges.endDate };
+      await ExportManager.exportSecurityMetrics(data, zone, timeRangeObj);
       Alert.alert('Success', 'Security data exported successfully!');
     } catch (error) {
       console.error('Export error:', error);
@@ -186,6 +202,11 @@ export default function SecurityScreen({ zoneId, zoneName = 'Unknown Zone' }: Se
         />
       }
     >
+      {/* Zone Selector */}
+      <View style={styles.zoneSelectorContainer}>
+        <ZoneSelector />
+      </View>
+
       {/* Header */}
       <View style={styles.header}>
         <View style={styles.headerTop}>
@@ -207,6 +228,34 @@ export default function SecurityScreen({ zoneId, zoneName = 'Unknown Zone' }: Se
           >
             <Text style={styles.exportButtonText}>
               {exporting ? '⏳' : '📤'} Export
+            </Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Time Range Selector */}
+        <View style={styles.timeRangeSelector}>
+          <TouchableOpacity
+            style={[styles.timeRangeButton, timeRange === '24h' && styles.timeRangeButtonActive]}
+            onPress={() => setTimeRange('24h')}
+          >
+            <Text style={[styles.timeRangeButtonText, timeRange === '24h' && styles.timeRangeButtonTextActive]}>
+              24H
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.timeRangeButton, timeRange === '7d' && styles.timeRangeButtonActive]}
+            onPress={() => setTimeRange('7d')}
+          >
+            <Text style={[styles.timeRangeButtonText, timeRange === '7d' && styles.timeRangeButtonTextActive]}>
+              7D
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.timeRangeButton, timeRange === '30d' && styles.timeRangeButtonActive]}
+            onPress={() => setTimeRange('30d')}
+          >
+            <Text style={[styles.timeRangeButtonText, timeRange === '30d' && styles.timeRangeButtonTextActive]}>
+              30D
             </Text>
           </TouchableOpacity>
         </View>
@@ -419,6 +468,9 @@ const styles = StyleSheet.create({
   contentContainer: {
     padding: 16,
   },
+  zoneSelectorContainer: {
+    marginBottom: 16,
+  },
   centerContainer: {
     flex: 1,
     justifyContent: 'center',
@@ -451,6 +503,35 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 14,
     fontWeight: '600',
+  },
+  timeRangeSelector: {
+    flexDirection: 'row',
+    backgroundColor: '#fff',
+    borderRadius: 8,
+    padding: 4,
+    marginTop: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  timeRangeButton: {
+    flex: 1,
+    paddingVertical: 10,
+    alignItems: 'center',
+    borderRadius: 6,
+  },
+  timeRangeButtonActive: {
+    backgroundColor: '#f6821f',
+  },
+  timeRangeButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#666',
+  },
+  timeRangeButtonTextActive: {
+    color: '#fff',
   },
   title: {
     fontSize: 28,

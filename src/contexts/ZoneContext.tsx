@@ -1,6 +1,12 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import AuthManager from '../services/AuthManager';
 import { Zone } from '../types/common';
+
+// Storage keys for persistence
+const SELECTED_ACCOUNT_KEY = 'cloudflare_selected_account';
+const SELECTED_ZONE_KEY = 'cloudflare_selected_zone';
+const ZONES_CACHE_KEY = 'cloudflare_zones_cache';
 
 interface Account {
   id: string;
@@ -10,6 +16,7 @@ interface Account {
 interface ZoneContextType {
   accounts: Account[];
   selectedAccount: Account | null;
+  accountTag: string | null; // Account ID for GraphQL queries
   zones: Zone[];
   zoneId: string | null;
   zoneName: string | null;
@@ -18,6 +25,7 @@ interface ZoneContextType {
   isLoading: boolean;
   error: string | null;
   refreshAccounts: () => Promise<void>;
+  refreshZones: () => Promise<void>;
 }
 
 const ZoneContext = createContext<ZoneContextType | undefined>(undefined);
@@ -37,6 +45,7 @@ interface ZoneProviderProps {
 export const ZoneProvider: React.FC<ZoneProviderProps> = ({ children }) => {
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [selectedAccount, setSelectedAccountState] = useState<Account | null>(null);
+  const [accountTag, setAccountTag] = useState<string | null>(null);
   const [zones, setZones] = useState<Zone[]>([]);
   const [zoneId, setZoneIdState] = useState<string | null>(null);
   const [zoneName, setZoneName] = useState<string | null>(null);
@@ -44,10 +53,13 @@ export const ZoneProvider: React.FC<ZoneProviderProps> = ({ children }) => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    loadAccounts();
+    initializeContext();
   }, []);
 
-  const loadAccounts = async () => {
+  /**
+   * Initialize context by loading persisted data and accounts
+   */
+  const initializeContext = async () => {
     try {
       setIsLoading(true);
       setError(null);
@@ -56,6 +68,68 @@ export const ZoneProvider: React.FC<ZoneProviderProps> = ({ children }) => {
       const token = await AuthManager.getCurrentToken();
       if (!token) {
         setIsLoading(false);
+        return;
+      }
+
+      // Load persisted account and zone selections
+      const [persistedAccountJson, persistedZoneId, persistedZonesJson] = await Promise.all([
+        AsyncStorage.getItem(SELECTED_ACCOUNT_KEY),
+        AsyncStorage.getItem(SELECTED_ZONE_KEY),
+        AsyncStorage.getItem(ZONES_CACHE_KEY),
+      ]);
+
+      // Load accounts from API
+      await loadAccounts();
+
+      // Restore persisted account if available
+      if (persistedAccountJson) {
+        try {
+          const persistedAccount: Account = JSON.parse(persistedAccountJson);
+          setSelectedAccountState(persistedAccount);
+          setAccountTag(persistedAccount.id); // Set account tag for GraphQL queries
+
+          // Restore cached zones if available
+          if (persistedZonesJson) {
+            const cachedZones: Zone[] = JSON.parse(persistedZonesJson);
+            setZones(cachedZones);
+          }
+
+          // Restore zone selection if available
+          if (persistedZoneId) {
+            setZoneIdState(persistedZoneId);
+            
+            // Find zone name from cached zones
+            if (persistedZonesJson) {
+              const cachedZones: Zone[] = JSON.parse(persistedZonesJson);
+              const zone = cachedZones.find(z => z.id === persistedZoneId);
+              if (zone) {
+                setZoneName(zone.name);
+              }
+            }
+          }
+        } catch (err) {
+          console.error('Error restoring persisted data:', err);
+        }
+      }
+
+      setIsLoading(false);
+    } catch (err) {
+      console.error('Error initializing context:', err);
+      setError(err instanceof Error ? err.message : 'Failed to initialize');
+      setIsLoading(false);
+    }
+  };
+
+  /**
+   * Load accounts from Cloudflare API
+   */
+  const loadAccounts = async () => {
+    try {
+      setError(null);
+
+      // Check if user is authenticated
+      const token = await AuthManager.getCurrentToken();
+      if (!token) {
         return;
       }
 
@@ -102,36 +176,18 @@ export const ZoneProvider: React.FC<ZoneProviderProps> = ({ children }) => {
 
       console.log(`Total accounts loaded: ${allAccounts.length}`);
       setAccounts(allAccounts);
-
-      // Don't auto-select - let user choose
-      setIsLoading(false);
     } catch (err) {
       console.error('Error loading accounts:', err);
       setError(err instanceof Error ? err.message : 'Failed to load accounts');
-    } finally {
-      setIsLoading(false);
     }
   };
 
-  const selectAccount = async (account: Account | null) => {
-    if (!account) {
-      // Reset account and zones
-      setSelectedAccountState(null);
-      setZones([]);
-      setZoneIdState(null);
-      setZoneName(null);
-      return;
-    }
-
+  /**
+   * Load zones for the selected account
+   */
+  const loadZones = async (account: Account) => {
     try {
-      setIsLoading(true);
       setError(null);
-      setSelectedAccountState(account);
-      
-      // Clear previous zones
-      setZones([]);
-      setZoneIdState(null);
-      setZoneName(null);
 
       // Fetch zones for this account
       const token = await AuthManager.getCurrentToken();
@@ -185,40 +241,110 @@ export const ZoneProvider: React.FC<ZoneProviderProps> = ({ children }) => {
       console.log(`Total zones loaded for ${account.name}: ${allZones.length}`);
       setZones(allZones);
 
-      // Don't auto-select zone - let user choose
+      // Cache zones for this account
+      await AsyncStorage.setItem(ZONES_CACHE_KEY, JSON.stringify(allZones));
+
+      return allZones;
     } catch (err) {
       console.error('Error loading zones:', err);
       setError(err instanceof Error ? err.message : 'Failed to load zones');
       setZones([]); // Set empty array on error
+      return [];
+    }
+  };
+
+  /**
+   * Set the selected account and load its zones
+   */
+  const setSelectedAccount = async (account: Account | null) => {
+    if (!account) {
+      // Reset account and zones
+      setSelectedAccountState(null);
+      setAccountTag(null);
+      setZones([]);
+      setZoneIdState(null);
+      setZoneName(null);
+      
+      // Clear persisted data
+      await AsyncStorage.removeItem(SELECTED_ACCOUNT_KEY);
+      await AsyncStorage.removeItem(SELECTED_ZONE_KEY);
+      await AsyncStorage.removeItem(ZONES_CACHE_KEY);
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      setError(null);
+      setSelectedAccountState(account);
+      setAccountTag(account.id); // Set account tag for GraphQL queries
+      
+      // Clear previous zones
+      setZones([]);
+      setZoneIdState(null);
+      setZoneName(null);
+
+      // Persist account selection
+      await AsyncStorage.setItem(SELECTED_ACCOUNT_KEY, JSON.stringify(account));
+
+      // Load zones for this account
+      await loadZones(account);
+    } catch (err) {
+      console.error('Error setting selected account:', err);
+      setError(err instanceof Error ? err.message : 'Failed to set account');
     } finally {
       setIsLoading(false);
     }
   };
 
-  const setSelectedAccount = async (account: Account | null) => {
-    await selectAccount(account);
-  };
-
-  const setZoneId = (newZoneId: string | null) => {
+  /**
+   * Set the selected zone ID
+   */
+  const setZoneId = async (newZoneId: string | null) => {
     setZoneIdState(newZoneId);
+    
     if (newZoneId) {
       const zone = zones.find(z => z.id === newZoneId);
       if (zone) {
         setZoneName(zone.name);
       }
+      
+      // Persist zone selection
+      await AsyncStorage.setItem(SELECTED_ZONE_KEY, newZoneId);
     } else {
       setZoneName(null);
+      
+      // Clear persisted zone selection
+      await AsyncStorage.removeItem(SELECTED_ZONE_KEY);
     }
   };
 
+  /**
+   * Refresh accounts from API
+   */
   const refreshAccounts = async () => {
+    setIsLoading(true);
     await loadAccounts();
+    setIsLoading(false);
+  };
+
+  /**
+   * Refresh zones for the current account
+   */
+  const refreshZones = async () => {
+    if (!selectedAccount) {
+      return;
+    }
+    
+    setIsLoading(true);
+    await loadZones(selectedAccount);
+    setIsLoading(false);
   };
 
   return (
     <ZoneContext.Provider value={{ 
       accounts,
       selectedAccount,
+      accountTag,
       zones,
       zoneId, 
       zoneName, 
@@ -227,6 +353,7 @@ export const ZoneProvider: React.FC<ZoneProviderProps> = ({ children }) => {
       isLoading, 
       error,
       refreshAccounts,
+      refreshZones,
     }}>
       {children}
     </ZoneContext.Provider>

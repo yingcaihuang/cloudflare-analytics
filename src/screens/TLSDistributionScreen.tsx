@@ -4,7 +4,7 @@
  * Requirements: 20.1, 20.2, 20.3, 20.4, 20.5
  */
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   View,
   Text,
@@ -16,12 +16,9 @@ import {
   Dimensions,
 } from 'react-native';
 import { useTLSDistribution } from '../hooks/useTLSDistribution';
+import { useZone } from '../contexts/ZoneContext';
 import { MetricsQueryParams } from '../types';
 import { PieChart, PieChartDataItem } from '../components/PieChart';
-
-interface TLSDistributionScreenProps {
-  zoneId: string;
-}
 
 interface TLSStats {
   name: string;
@@ -34,23 +31,39 @@ interface TLSStats {
   isHighRisk: boolean;
 }
 
-export default function TLSDistributionScreen({ zoneId }: TLSDistributionScreenProps) {
+export default function TLSDistributionScreen() {
+  const { zoneId, accountTag } = useZone();
   const [refreshing, setRefreshing] = useState(false);
+  const [timeRange, setTimeRange] = useState<'24h' | '7d' | '30d'>('24h');
 
-  // Get today's date range
-  const getTodayRange = (): { startDate: Date; endDate: Date } => {
+  // Calculate date ranges based on selected time range
+  const dateRanges = useMemo(() => {
     const now = new Date();
-    const startOfDay = new Date(now);
-    startOfDay.setHours(0, 0, 0, 0);
-    return { startDate: startOfDay, endDate: now };
-  };
+    const endDate = now;
+    let startDate: Date;
 
-  // Query parameters
-  const params: MetricsQueryParams = {
-    zoneId,
-    ...getTodayRange(),
+    switch (timeRange) {
+      case '24h':
+        startDate = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+        break;
+      case '7d':
+        startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+        break;
+      case '30d':
+        startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+        break;
+    }
+
+    return { startDate, endDate };
+  }, [timeRange]);
+
+  // Query parameters - memoize to prevent unnecessary re-renders
+  const params: MetricsQueryParams = useMemo(() => ({
+    zoneId: zoneId || '',
+    accountTag: accountTag || undefined,
+    ...dateRanges,
     granularity: 'hour',
-  };
+  }), [zoneId, accountTag, dateRanges]);
 
   // Fetch TLS distribution data
   const {
@@ -100,6 +113,7 @@ export default function TLSDistributionScreen({ zoneId }: TLSDistributionScreenP
 
   /**
    * Get TLS version statistics with percentages and security flags
+   * Sorted by percentage in descending order
    * Requirement 20.5: Mark outdated TLS versions as high risk
    */
   const getTLSStats = (): TLSStats[] => {
@@ -107,7 +121,7 @@ export default function TLSDistributionScreen({ zoneId }: TLSDistributionScreenP
 
     const { tls1_0, tls1_1, tls1_2, tls1_3, total } = data;
 
-    return [
+    const stats = [
       {
         name: 'TLS 1.0',
         version: '1.0',
@@ -149,6 +163,9 @@ export default function TLSDistributionScreen({ zoneId }: TLSDistributionScreenP
         isHighRisk: false,
       },
     ];
+
+    // Sort by percentage in descending order
+    return stats.sort((a, b) => b.percentage - a.percentage);
   };
 
   /**
@@ -231,6 +248,34 @@ export default function TLSDistributionScreen({ zoneId }: TLSDistributionScreenP
           {isFromCache && (
             <Text style={styles.cacheIndicator}>📦 Showing cached data</Text>
           )}
+        </View>
+
+        {/* Time Range Selector */}
+        <View style={styles.timeRangeSelector}>
+          <TouchableOpacity
+            style={[styles.timeRangeButton, timeRange === '24h' && styles.timeRangeButtonActive]}
+            onPress={() => setTimeRange('24h')}
+          >
+            <Text style={[styles.timeRangeButtonText, timeRange === '24h' && styles.timeRangeButtonTextActive]}>
+              24H
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.timeRangeButton, timeRange === '7d' && styles.timeRangeButtonActive]}
+            onPress={() => setTimeRange('7d')}
+          >
+            <Text style={[styles.timeRangeButtonText, timeRange === '7d' && styles.timeRangeButtonTextActive]}>
+              7D
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.timeRangeButton, timeRange === '30d' && styles.timeRangeButtonActive]}
+            onPress={() => setTimeRange('30d')}
+          >
+            <Text style={[styles.timeRangeButtonText, timeRange === '30d' && styles.timeRangeButtonTextActive]}>
+              30D
+            </Text>
+          </TouchableOpacity>
         </View>
 
         {/* Error banner if partial data */}
@@ -412,7 +457,36 @@ const styles = StyleSheet.create({
     backgroundColor: '#f5f5f5',
   },
   header: {
+    marginBottom: 16,
+  },
+  timeRangeSelector: {
+    flexDirection: 'row',
+    backgroundColor: '#fff',
+    borderRadius: 8,
+    padding: 4,
     marginBottom: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  timeRangeButton: {
+    flex: 1,
+    paddingVertical: 10,
+    alignItems: 'center',
+    borderRadius: 6,
+  },
+  timeRangeButtonActive: {
+    backgroundColor: '#f6821f',
+  },
+  timeRangeButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#666',
+  },
+  timeRangeButtonTextActive: {
+    color: '#fff',
   },
   title: {
     fontSize: 28,

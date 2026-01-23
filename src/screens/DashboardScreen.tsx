@@ -17,7 +17,7 @@ import {
 } from 'react-native';
 import { useTrafficMetrics } from '../hooks/useTrafficMetrics';
 import { MetricsQueryParams } from '../types';
-import { TrafficTrendChart } from '../components/TrafficTrendChart';
+import { TrafficTrendChart, ZoneSelector } from '../components';
 import { ExportManager } from '../services';
 
 interface DashboardScreenProps {
@@ -325,6 +325,11 @@ export default function DashboardScreen({ zoneId, zoneName = 'Unknown Zone' }: D
         />
       }
     >
+      {/* Zone Selector */}
+      <View style={styles.zoneSelectorContainer}>
+        <ZoneSelector />
+      </View>
+
       {/* Header */}
       <View style={styles.header}>
         <View style={styles.headerTop}>
@@ -454,6 +459,9 @@ const styles = StyleSheet.create({
   },
   contentContainer: {
     padding: 16,
+  },
+  zoneSelectorContainer: {
+    marginBottom: 16,
   },
   centerContainer: {
     flex: 1,

@@ -106,3 +106,32 @@ export interface ContentTypeData {
     percentage: number;
   }[];
 }
+
+export interface BotAnalysisData {
+  totalRequests: number;
+  botRequests: number;
+  botPercentage: number;
+  scoreDistribution: {
+    range: string;
+    count: number;
+    percentage: number;
+  }[];
+}
+
+export interface FirewallAnalysisData {
+  totalEvents: number;
+  rules: {
+    ruleId: string;
+    ruleName: string;
+    action: string;
+    count: number;
+    percentage: number;
+  }[];
+  topRules: {
+    ruleId: string;
+    ruleName: string;
+    action: string;
+    count: number;
+    percentage: number;
+  }[];
+}

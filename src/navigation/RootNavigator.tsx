@@ -40,7 +40,6 @@ export const RootNavigator: React.FC = () => {
       screenOptions={{ 
         headerShown: false,
         presentation: 'card',
-        animationEnabled: true,
       }}
     >
       {!isAuthenticated ? (

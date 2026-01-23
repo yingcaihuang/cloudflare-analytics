@@ -294,7 +294,7 @@ class AuthManager {
     return account;
   }
 
-  async switchAccount(accountId: string): Promise<void> {
+  async switchAccount(_accountId: string): Promise<void> {
     // Placeholder for account switching
   }
 

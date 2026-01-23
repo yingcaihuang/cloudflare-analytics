@@ -16,6 +16,7 @@ export interface TimeRange {
 
 export interface MetricsQueryParams {
   zoneId: string;
+  accountTag?: string; // Account ID for account-level queries
   startDate: Date;
   endDate: Date;
   granularity?: 'hour' | 'day';

@@ -10,3 +10,6 @@ export { useGeoDistribution } from './useGeoDistribution';
 export { useProtocolDistribution } from './useProtocolDistribution';
 export { useTLSDistribution } from './useTLSDistribution';
 export { useContentTypeDistribution } from './useContentTypeDistribution';
+export { useAlertMonitoring } from './useAlertMonitoring';
+export { useBotAnalysis } from './useBotAnalysis';
+export { useFirewallAnalysis } from './useFirewallAnalysis';

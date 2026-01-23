@@ -9,6 +9,15 @@ import {
   DashboardScreen, 
   StatusCodesScreen, 
   SecurityScreen,
+  MoreScreen,
+  GeoDistributionScreen,
+  ProtocolDistributionScreen,
+  TLSDistributionScreen,
+  ContentTypeScreen,
+  BotAnalysisScreen,
+  FirewallAnalysisScreen,
+  AlertConfigScreen,
+  AlertHistoryScreen,
 } from './src/screens';
 import { ZoneProvider, useZone } from './src/contexts';
 import { AuthManager } from './src/services';
@@ -70,6 +79,14 @@ function MainTabs() {
               </Text>
             </View>
           ),
+        }}
+      />
+      <Tab.Screen 
+        name="More"
+        component={MoreScreen}
+        options={{ 
+          title: '更多',
+          headerShown: false,
         }}
       />
     </Tab.Navigator>
@@ -206,6 +223,79 @@ function AppNavigator() {
             </TouchableOpacity>
           ),
         })}
+      />
+
+      {/* Additional Feature Screens */}
+      <Stack.Screen 
+        name="GeoDistribution"
+        component={GeoDistributionScreen}
+        options={{
+          title: '地理分布',
+          headerBackTitle: '返回',
+        }}
+      />
+
+      <Stack.Screen 
+        name="ProtocolDistribution"
+        component={ProtocolDistributionScreen}
+        options={{
+          title: '协议分布',
+          headerBackTitle: '返回',
+        }}
+      />
+
+      <Stack.Screen 
+        name="TLSDistribution"
+        component={TLSDistributionScreen}
+        options={{
+          title: 'TLS 版本分布',
+          headerBackTitle: '返回',
+        }}
+      />
+
+      <Stack.Screen 
+        name="ContentType"
+        component={ContentTypeScreen}
+        options={{
+          title: '内容类型分布',
+          headerBackTitle: '返回',
+        }}
+      />
+
+      <Stack.Screen 
+        name="BotAnalysis"
+        component={BotAnalysisScreen}
+        options={{
+          title: 'Bot 分析',
+          headerBackTitle: '返回',
+        }}
+      />
+
+      <Stack.Screen 
+        name="FirewallAnalysis"
+        component={FirewallAnalysisScreen}
+        options={{
+          title: 'Firewall 分析',
+          headerBackTitle: '返回',
+        }}
+      />
+
+      <Stack.Screen 
+        name="AlertConfig"
+        component={AlertConfigScreen}
+        options={{
+          title: '告警配置',
+          headerBackTitle: '返回',
+        }}
+      />
+
+      <Stack.Screen 
+        name="AlertHistory"
+        component={AlertHistoryScreen}
+        options={{
+          title: '告警历史',
+          headerBackTitle: '返回',
+        }}
       />
     </Stack.Navigator>
   );

@@ -227,7 +227,8 @@ const styles = StyleSheet.create({
   },
   listItemSelected: {
     borderWidth: 2,
-    borderColor: '#f97316',
+    borderColor: '#22c55e',
+    backgroundColor: '#f0fdf4',
   },
   listItemContent: {
     flex: 1,

@@ -30,11 +30,14 @@ export const BarChart: React.FC<BarChartProps> = ({
   showValuesOnTopOfBars = true,
   fromZero = true,
 }) => {
+  // Round all data values to remove decimals
+  const roundedData = data.map(value => Math.round(value));
+  
   const chartData = {
     labels: labels,
     datasets: [
       {
-        data: data,
+        data: roundedData,
       },
     ],
   };
@@ -78,7 +81,7 @@ export const BarChart: React.FC<BarChartProps> = ({
             <View key={index} style={styles.legendItem}>
               <View style={[styles.legendColor, { backgroundColor: '#2280b0' }]} />
               <Text style={styles.legendText}>
-                {label}: {data[index]?.toLocaleString() || 0}{yAxisSuffix}
+                {label}: {roundedData[index]?.toLocaleString() || 0}{yAxisSuffix}
               </Text>
             </View>
           ))}

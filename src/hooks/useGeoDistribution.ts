@@ -37,6 +37,9 @@ export function useGeoDistribution(
   const [lastRefreshTime, setLastRefreshTime] = useState<Date | null>(null);
   const [isFromCache, setIsFromCache] = useState<boolean>(false);
 
+  console.log('[useGeoDistribution] Hook called with params:', params);
+  console.log('[useGeoDistribution] autoFetch:', autoFetch);
+
   // Generate cache key based on params
   const getCacheKey = useCallback(() => {
     const { zoneId, startDate, endDate } = params;
@@ -45,26 +48,42 @@ export function useGeoDistribution(
 
   // Fetch data from API or cache
   const fetchData = useCallback(async (forceRefresh: boolean = false) => {
+    console.log('[useGeoDistribution] fetchData called, forceRefresh:', forceRefresh);
+    console.log('[useGeoDistribution] params.zoneId:', params.zoneId);
+    
+    if (!params.zoneId) {
+      console.log('[useGeoDistribution] No zoneId, skipping fetch');
+      setError('No zone selected');
+      setLoading(false);
+      return;
+    }
+    
     setLoading(true);
     setError(null);
 
     try {
       const cacheKey = getCacheKey();
+      console.log('[useGeoDistribution] Cache key:', cacheKey);
 
       // Try to load from cache first if not forcing refresh
       if (!forceRefresh) {
+        console.log('[useGeoDistribution] Checking cache...');
         const cachedData = await CacheManager.getData<GeoData>(cacheKey);
         if (cachedData) {
+          console.log('[useGeoDistribution] Found cached data');
           setData(cachedData.data);
           setLastRefreshTime(cachedData.timestamp);
           setIsFromCache(true);
           setLoading(false);
           return;
         }
+        console.log('[useGeoDistribution] No cached data found');
       }
 
       // Fetch from API
+      console.log('[useGeoDistribution] Fetching from API...');
       const result = await GraphQLClient.queryGeoDistribution(params);
+      console.log('[useGeoDistribution] API result:', result);
       
       // Save to cache
       await CacheManager.saveData(cacheKey, result, CACHE_TTL);
@@ -74,6 +93,7 @@ export function useGeoDistribution(
       setLastRefreshTime(new Date());
       setIsFromCache(false);
     } catch (err) {
+      console.error('[useGeoDistribution] Error:', err);
       // On error, try to load from cache as fallback
       const cacheKey = getCacheKey();
       const cachedData = await CacheManager.getData<GeoData>(cacheKey);
@@ -98,7 +118,9 @@ export function useGeoDistribution(
 
   // Auto-fetch on mount or when params change
   useEffect(() => {
+    console.log('[useGeoDistribution] useEffect triggered, autoFetch:', autoFetch);
     if (autoFetch) {
+      console.log('[useGeoDistribution] Calling fetchData...');
       fetchData(false);
     }
   }, [autoFetch, fetchData]);

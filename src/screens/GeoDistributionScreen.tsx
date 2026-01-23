@@ -4,7 +4,7 @@
  * Requirements: 18.1, 18.2, 18.3, 18.4, 18.5
  */
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   View,
   Text,
@@ -17,11 +17,8 @@ import {
   Modal,
 } from 'react-native';
 import { useGeoDistribution } from '../hooks/useGeoDistribution';
+import { useZone } from '../contexts/ZoneContext';
 import { MetricsQueryParams } from '../types';
-
-interface GeoDistributionScreenProps {
-  zoneId: string;
-}
 
 interface CountryItem {
   code: string;
@@ -31,25 +28,49 @@ interface CountryItem {
   percentage: number;
 }
 
-export default function GeoDistributionScreen({ zoneId }: GeoDistributionScreenProps) {
+export default function GeoDistributionScreen() {
+  const { zoneId, accountTag } = useZone();
   const [refreshing, setRefreshing] = useState(false);
   const [selectedCountry, setSelectedCountry] = useState<CountryItem | null>(null);
   const [showTopOnly, setShowTopOnly] = useState(true);
+  const [timeRange, setTimeRange] = useState<'24h' | '7d' | '30d'>('24h');
 
-  // Get today's date range
-  const getTodayRange = (): { startDate: Date; endDate: Date } => {
+  console.log('[GeoDistributionScreen] Component mounted/updated');
+  console.log('[GeoDistributionScreen] zoneId:', zoneId);
+  console.log('[GeoDistributionScreen] accountTag:', accountTag);
+
+  // Calculate date ranges based on selected time range
+  const dateRanges = useMemo(() => {
     const now = new Date();
-    const startOfDay = new Date(now);
-    startOfDay.setHours(0, 0, 0, 0);
-    return { startDate: startOfDay, endDate: now };
-  };
+    const endDate = now;
+    let startDate: Date;
 
-  // Query parameters
-  const params: MetricsQueryParams = {
-    zoneId,
-    ...getTodayRange(),
-    granularity: 'hour',
-  };
+    switch (timeRange) {
+      case '24h':
+        startDate = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+        break;
+      case '7d':
+        startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+        break;
+      case '30d':
+        startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+        break;
+    }
+
+    return { startDate, endDate };
+  }, [timeRange]);
+
+  // Query parameters - memoize to prevent unnecessary re-renders
+  const params: MetricsQueryParams = useMemo(() => {
+    const p = {
+      zoneId: zoneId || '',
+      accountTag: accountTag || undefined,
+      ...dateRanges,
+      granularity: 'hour' as const,
+    };
+    console.log('[GeoDistributionScreen] Creating params:', p);
+    return p;
+  }, [zoneId, accountTag, dateRanges]);
 
   // Fetch geographic distribution data
   const {
@@ -60,6 +81,8 @@ export default function GeoDistributionScreen({ zoneId }: GeoDistributionScreenP
     lastRefreshTime,
     isFromCache,
   } = useGeoDistribution(params);
+
+  console.log('[GeoDistributionScreen] Hook result:', { data, loading, error });
 
   /**
    * Handle pull-to-refresh
@@ -150,10 +173,8 @@ export default function GeoDistributionScreen({ zoneId }: GeoDistributionScreenP
       <TouchableOpacity
         style={[styles.countryItem, isTopTen && styles.countryItemTopTen]}
         onPress={() => handleCountryClick(item)}
+        key={`${item.code}-${item.name}-${index}`}
       >
-        <View style={styles.countryRank}>
-          <Text style={styles.countryRankText}>#{index + 1}</Text>
-        </View>
         <Text style={styles.countryFlag}>{flag}</Text>
         <View style={styles.countryInfo}>
           <Text style={styles.countryName}>{item.name}</Text>
@@ -225,6 +246,34 @@ export default function GeoDistributionScreen({ zoneId }: GeoDistributionScreenP
           )}
         </View>
 
+        {/* Time Range Selector */}
+        <View style={styles.timeRangeSelector}>
+          <TouchableOpacity
+            style={[styles.timeRangeButton, timeRange === '24h' && styles.timeRangeButtonActive]}
+            onPress={() => setTimeRange('24h')}
+          >
+            <Text style={[styles.timeRangeButtonText, timeRange === '24h' && styles.timeRangeButtonTextActive]}>
+              24H
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.timeRangeButton, timeRange === '7d' && styles.timeRangeButtonActive]}
+            onPress={() => setTimeRange('7d')}
+          >
+            <Text style={[styles.timeRangeButtonText, timeRange === '7d' && styles.timeRangeButtonTextActive]}>
+              7D
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.timeRangeButton, timeRange === '30d' && styles.timeRangeButtonActive]}
+            onPress={() => setTimeRange('30d')}
+          >
+            <Text style={[styles.timeRangeButtonText, timeRange === '30d' && styles.timeRangeButtonTextActive]}>
+              30D
+            </Text>
+          </TouchableOpacity>
+        </View>
+
         {/* Error banner if partial data */}
         {error && data && (
           <View style={styles.errorBanner}>
@@ -272,7 +321,7 @@ export default function GeoDistributionScreen({ zoneId }: GeoDistributionScreenP
             <FlatList
               data={displayCountries}
               renderItem={renderCountryItem}
-              keyExtractor={(item) => item.code}
+              keyExtractor={(item, index) => `${item.name}-${index}`}
               scrollEnabled={false}
             />
           </View>
@@ -363,7 +412,36 @@ const styles = StyleSheet.create({
     backgroundColor: '#f5f5f5',
   },
   header: {
+    marginBottom: 16,
+  },
+  timeRangeSelector: {
+    flexDirection: 'row',
+    backgroundColor: '#fff',
+    borderRadius: 8,
+    padding: 4,
     marginBottom: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  timeRangeButton: {
+    flex: 1,
+    paddingVertical: 10,
+    alignItems: 'center',
+    borderRadius: 6,
+  },
+  timeRangeButtonActive: {
+    backgroundColor: '#f6821f',
+  },
+  timeRangeButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#666',
+  },
+  timeRangeButtonTextActive: {
+    color: '#fff',
   },
   title: {
     fontSize: 28,
@@ -496,15 +574,6 @@ const styles = StyleSheet.create({
   },
   countryItemTopTen: {
     backgroundColor: '#fffbf5',
-  },
-  countryRank: {
-    width: 40,
-    alignItems: 'center',
-  },
-  countryRankText: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    color: '#999',
   },
   countryFlag: {
     fontSize: 32,
