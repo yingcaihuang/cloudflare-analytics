@@ -36,6 +36,7 @@ export default function AccountZoneSelectionScreen({ onComplete }: AccountZoneSe
   const [isLoadingZones, setIsLoadingZones] = useState(false);
   const [sortOrder, setSortOrder] = useState<'desc' | 'asc'>('desc'); // 默认降序
   const [zoneSearchQuery, setZoneSearchQuery] = useState(''); // Zone 搜索关键词
+  const [accountSearchQuery, setAccountSearchQuery] = useState(''); // Account 搜索关键词
 
   // Debug logging
   console.log('AccountZoneSelectionScreen state:', {
@@ -68,21 +69,6 @@ export default function AccountZoneSelectionScreen({ onComplete }: AccountZoneSe
   };
 
   /**
-   * Filter zones based on search query
-   */
-  const getFilteredZones = () => {
-    if (!zoneSearchQuery.trim()) {
-      return zones;
-    }
-
-    const query = zoneSearchQuery.toLowerCase().trim();
-    return zones.filter(zone => 
-      zone.name.toLowerCase().includes(query) ||
-      zone.id.toLowerCase().includes(query)
-    );
-  };
-
-  /**
    * Toggle sort order between desc and asc
    */
   const handleToggleSort = () => {
@@ -90,14 +76,27 @@ export default function AccountZoneSelectionScreen({ onComplete }: AccountZoneSe
   };
 
   /**
-   * Get sorted accounts list
-   * Accounts with zone counts are sorted by count, others remain at the end
+   * Get sorted and filtered accounts list
+   * 1. First filter by search query
+   * 2. Then sort by zone count
    */
-  const getSortedAccounts = () => {
+  const getFilteredAccounts = () => {
+    // Step 1: Filter accounts by search query
+    let filteredAccounts = accounts;
+    
+    if (accountSearchQuery.trim()) {
+      const query = accountSearchQuery.toLowerCase().trim();
+      filteredAccounts = accounts.filter(account => 
+        account.name.toLowerCase().includes(query) ||
+        account.id.toLowerCase().includes(query)
+      );
+    }
+
+    // Step 2: Sort filtered accounts by zone count
     const accountsWithCounts: any[] = [];
     const accountsWithoutCounts: any[] = [];
 
-    accounts.forEach(account => {
+    filteredAccounts.forEach(account => {
       const zoneCount = accountZoneCounts.get(account.id);
       if (zoneCount !== undefined) {
         accountsWithCounts.push({ ...account, zoneCount });
@@ -117,6 +116,21 @@ export default function AccountZoneSelectionScreen({ onComplete }: AccountZoneSe
 
     // Return sorted accounts with counts first, then accounts without counts
     return [...accountsWithCounts, ...accountsWithoutCounts];
+  };
+
+  /**
+   * Filter zones based on search query
+   */
+  const getFilteredZones = () => {
+    if (!zoneSearchQuery.trim()) {
+      return zones;
+    }
+
+    const query = zoneSearchQuery.toLowerCase().trim();
+    return zones.filter(zone => 
+      zone.name.toLowerCase().includes(query) ||
+      zone.id.toLowerCase().includes(query)
+    );
   };
 
   // Only show loading for initial account load, not when switching to zone view
@@ -160,31 +174,63 @@ export default function AccountZoneSelectionScreen({ onComplete }: AccountZoneSe
 
       {/* Account Selection */}
       {step === 'account' && (
-        <ScrollView style={styles.listContainer}>
-          {getSortedAccounts().map((account) => {
-            const zoneCount = accountZoneCounts.get(account.id);
-            return (
-              <TouchableOpacity
-                key={account.id}
-                style={styles.listItem}
-                onPress={() => handleAccountSelect(account)}
-              >
-                <View style={styles.listItemContent}>
-                  <View style={styles.accountTitleRow}>
-                    <Text style={styles.listItemTitle}>{account.name}</Text>
-                    {zoneCount !== undefined && (
-                      <View style={styles.zoneBadge}>
-                        <Text style={styles.zoneBadgeText}>{zoneCount}</Text>
+        <>
+          {/* Account Search Bar */}
+          {accounts.length > 0 && (
+            <View style={styles.searchContainer}>
+              <TextInput
+                style={styles.searchInput}
+                placeholder="搜索账户名称或 ID..."
+                placeholderTextColor="#999"
+                value={accountSearchQuery}
+                onChangeText={setAccountSearchQuery}
+                autoCapitalize="none"
+                autoCorrect={false}
+              />
+              {accountSearchQuery.length > 0 && (
+                <TouchableOpacity 
+                  style={styles.clearButton}
+                  onPress={() => setAccountSearchQuery('')}
+                >
+                  <Text style={styles.clearButtonText}>✕</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+          )}
+          
+          <ScrollView style={styles.listContainer}>
+            {getFilteredAccounts().length === 0 ? (
+              <View style={styles.emptyContainer}>
+                <Text style={styles.emptyText}>没有找到匹配的账户</Text>
+                <Text style={styles.emptySubtext}>尝试其他搜索关键词</Text>
+              </View>
+            ) : (
+              getFilteredAccounts().map((account) => {
+                const zoneCount = accountZoneCounts.get(account.id);
+                return (
+                  <TouchableOpacity
+                    key={account.id}
+                    style={styles.listItem}
+                    onPress={() => handleAccountSelect(account)}
+                  >
+                    <View style={styles.listItemContent}>
+                      <View style={styles.accountTitleRow}>
+                        <Text style={styles.listItemTitle}>{account.name}</Text>
+                        {zoneCount !== undefined && (
+                          <View style={styles.zoneBadge}>
+                            <Text style={styles.zoneBadgeText}>{zoneCount}</Text>
+                          </View>
+                        )}
                       </View>
-                    )}
-                  </View>
-                  <Text style={styles.listItemSubtitle}>ID: {account.id}</Text>
-                </View>
-                <Text style={styles.arrow}>›</Text>
-              </TouchableOpacity>
-            );
-          })}
-        </ScrollView>
+                      <Text style={styles.listItemSubtitle}>ID: {account.id}</Text>
+                    </View>
+                    <Text style={styles.arrow}>›</Text>
+                  </TouchableOpacity>
+                );
+              })
+            )}
+          </ScrollView>
+        </>
       )}
 
       {/* Zone Selection */}
