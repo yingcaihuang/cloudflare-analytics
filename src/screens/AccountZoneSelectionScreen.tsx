@@ -14,6 +14,7 @@ import {
   TextInput,
 } from 'react-native';
 import { useZone } from '../contexts';
+import AuthManager from '../services/AuthManager';
 
 interface AccountZoneSelectionScreenProps {
   onComplete: () => void;
@@ -37,6 +38,10 @@ export default function AccountZoneSelectionScreen({ onComplete }: AccountZoneSe
   const [sortOrder, setSortOrder] = useState<'desc' | 'asc'>('desc'); // 默认降序
   const [zoneSearchQuery, setZoneSearchQuery] = useState(''); // Zone 搜索关键词
   const [accountSearchQuery, setAccountSearchQuery] = useState(''); // Account 搜索关键词
+  const [searchMode, setSearchMode] = useState<'account' | 'zone'>('account'); // 搜索模式：账户或Zone
+  const [globalZoneSearchQuery, setGlobalZoneSearchQuery] = useState(''); // 全局Zone搜索关键词
+  const [isLoadingGlobalZones, setIsLoadingGlobalZones] = useState(false);
+  const [globalZones, setGlobalZones] = useState<Array<{ zone: any; accountName: string; accountId: string }>>([]);
 
   // Debug logging
   console.log('AccountZoneSelectionScreen state:', {
@@ -66,6 +71,104 @@ export default function AccountZoneSelectionScreen({ onComplete }: AccountZoneSe
   const handleBackToAccounts = () => {
     setStep('account');
     setZoneSearchQuery(''); // 清空搜索
+  };
+
+  /**
+   * Search zones globally across all accounts
+   */
+  const searchGlobalZones = async (query: string) => {
+    if (!query.trim()) {
+      setGlobalZones([]);
+      return;
+    }
+
+    setIsLoadingGlobalZones(true);
+    try {
+      const token = await AuthManager.getCurrentToken();
+      if (!token) {
+        return;
+      }
+
+      const searchQuery = query.toLowerCase().trim();
+      const results: Array<{ zone: any; accountName: string; accountId: string }> = [];
+
+      // Search through all accounts
+      for (const account of accounts) {
+        try {
+          // Fetch zones for this account
+          const response = await fetch(
+            `https://api.cloudflare.com/client/v4/zones?account.id=${account.id}&per_page=100`,
+            {
+              method: 'GET',
+              headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+              },
+            }
+          );
+
+          if (response.ok) {
+            const data = await response.json();
+            if (data.success && data.result) {
+              // Filter zones that match the search query
+              const matchingZones = data.result.filter((zone: any) =>
+                zone.name.toLowerCase().includes(searchQuery) ||
+                zone.id.toLowerCase().includes(searchQuery)
+              );
+
+              // Add matching zones to results
+              matchingZones.forEach((zone: any) => {
+                results.push({
+                  zone: {
+                    id: zone.id,
+                    name: zone.name,
+                    status: zone.status,
+                    plan: zone.plan?.name || 'Unknown',
+                  },
+                  accountName: account.name,
+                  accountId: account.id,
+                });
+              });
+            }
+          }
+        } catch (err) {
+          console.error(`Error searching zones for account ${account.name}:`, err);
+        }
+      }
+
+      setGlobalZones(results);
+    } catch (err) {
+      console.error('Error searching global zones:', err);
+    } finally {
+      setIsLoadingGlobalZones(false);
+    }
+  };
+
+  /**
+   * Handle global zone search query change
+   */
+  const handleGlobalZoneSearch = (query: string) => {
+    setGlobalZoneSearchQuery(query);
+    // Debounce search to avoid too many API calls
+    if (query.trim().length >= 2) {
+      searchGlobalZones(query);
+    } else {
+      setGlobalZones([]);
+    }
+  };
+
+  /**
+   * Handle selecting a zone from global search
+   */
+  const handleGlobalZoneSelect = async (result: { zone: any; accountName: string; accountId: string }) => {
+    // Find the account
+    const account = accounts.find(acc => acc.id === result.accountId);
+    if (!account) return;
+
+    // Set the account and zone
+    await setSelectedAccount(account);
+    setZoneId(result.zone.id);
+    onComplete();
   };
 
   /**
@@ -175,22 +278,59 @@ export default function AccountZoneSelectionScreen({ onComplete }: AccountZoneSe
       {/* Account Selection */}
       {step === 'account' && (
         <>
-          {/* Account Search Bar */}
+          {/* Search Mode Tabs */}
+          {accounts.length > 0 && (
+            <View style={styles.tabContainer}>
+              <TouchableOpacity
+                style={[styles.tab, searchMode === 'account' && styles.tabActive]}
+                onPress={() => {
+                  setSearchMode('account');
+                  setGlobalZoneSearchQuery('');
+                  setGlobalZones([]);
+                }}
+              >
+                <Text style={[styles.tabText, searchMode === 'account' && styles.tabTextActive]}>
+                  搜索账户
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.tab, searchMode === 'zone' && styles.tabActive]}
+                onPress={() => {
+                  setSearchMode('zone');
+                  setAccountSearchQuery('');
+                }}
+              >
+                <Text style={[styles.tabText, searchMode === 'zone' && styles.tabTextActive]}>
+                  搜索 Zone
+                </Text>
+              </TouchableOpacity>
+            </View>
+          )}
+
+          {/* Search Bar */}
           {accounts.length > 0 && (
             <View style={styles.searchContainer}>
               <TextInput
                 style={styles.searchInput}
-                placeholder="搜索账户名称或 ID..."
+                placeholder={searchMode === 'account' ? '搜索账户名称或 ID...' : '搜索 Zone 名称或 ID...'}
                 placeholderTextColor="#999"
-                value={accountSearchQuery}
-                onChangeText={setAccountSearchQuery}
+                value={searchMode === 'account' ? accountSearchQuery : globalZoneSearchQuery}
+                onChangeText={searchMode === 'account' ? setAccountSearchQuery : handleGlobalZoneSearch}
                 autoCapitalize="none"
                 autoCorrect={false}
               />
-              {accountSearchQuery.length > 0 && (
+              {((searchMode === 'account' && accountSearchQuery.length > 0) || 
+                (searchMode === 'zone' && globalZoneSearchQuery.length > 0)) && (
                 <TouchableOpacity 
                   style={styles.clearButton}
-                  onPress={() => setAccountSearchQuery('')}
+                  onPress={() => {
+                    if (searchMode === 'account') {
+                      setAccountSearchQuery('');
+                    } else {
+                      setGlobalZoneSearchQuery('');
+                      setGlobalZones([]);
+                    }
+                  }}
                 >
                   <Text style={styles.clearButtonText}>✕</Text>
                 </TouchableOpacity>
@@ -198,38 +338,80 @@ export default function AccountZoneSelectionScreen({ onComplete }: AccountZoneSe
             </View>
           )}
           
-          <ScrollView style={styles.listContainer}>
-            {getFilteredAccounts().length === 0 ? (
-              <View style={styles.emptyContainer}>
-                <Text style={styles.emptyText}>没有找到匹配的账户</Text>
-                <Text style={styles.emptySubtext}>尝试其他搜索关键词</Text>
-              </View>
-            ) : (
-              getFilteredAccounts().map((account) => {
-                const zoneCount = accountZoneCounts.get(account.id);
-                return (
+          {/* Account List or Global Zone Search Results */}
+          {searchMode === 'account' ? (
+            <ScrollView style={styles.listContainer}>
+              {getFilteredAccounts().length === 0 ? (
+                <View style={styles.emptyContainer}>
+                  <Text style={styles.emptyText}>没有找到匹配的账户</Text>
+                  <Text style={styles.emptySubtext}>尝试其他搜索关键词</Text>
+                </View>
+              ) : (
+                getFilteredAccounts().map((account) => {
+                  const zoneCount = accountZoneCounts.get(account.id);
+                  return (
+                    <TouchableOpacity
+                      key={account.id}
+                      style={styles.listItem}
+                      onPress={() => handleAccountSelect(account)}
+                    >
+                      <View style={styles.listItemContent}>
+                        <View style={styles.accountTitleRow}>
+                          <Text style={styles.listItemTitle}>{account.name}</Text>
+                          {zoneCount !== undefined && (
+                            <View style={styles.zoneBadge}>
+                              <Text style={styles.zoneBadgeText}>{zoneCount}</Text>
+                            </View>
+                          )}
+                        </View>
+                        <Text style={styles.listItemSubtitle}>ID: {account.id}</Text>
+                      </View>
+                      <Text style={styles.arrow}>›</Text>
+                    </TouchableOpacity>
+                  );
+                })
+              )}
+            </ScrollView>
+          ) : (
+            <ScrollView style={styles.listContainer}>
+              {isLoadingGlobalZones ? (
+                <View style={styles.loadingContainer}>
+                  <ActivityIndicator size="large" color="#f97316" />
+                  <Text style={styles.loadingText}>搜索 Zones 中...</Text>
+                </View>
+              ) : globalZoneSearchQuery.trim().length < 2 ? (
+                <View style={styles.emptyContainer}>
+                  <Text style={styles.emptyText}>请输入至少 2 个字符开始搜索</Text>
+                  <Text style={styles.emptySubtext}>搜索所有账户下的 Zones</Text>
+                </View>
+              ) : globalZones.length === 0 ? (
+                <View style={styles.emptyContainer}>
+                  <Text style={styles.emptyText}>没有找到匹配的 Zone</Text>
+                  <Text style={styles.emptySubtext}>尝试其他搜索关键词</Text>
+                </View>
+              ) : (
+                globalZones.map((result, index) => (
                   <TouchableOpacity
-                    key={account.id}
+                    key={`${result.zone.id}-${index}`}
                     style={styles.listItem}
-                    onPress={() => handleAccountSelect(account)}
+                    onPress={() => handleGlobalZoneSelect(result)}
                   >
                     <View style={styles.listItemContent}>
-                      <View style={styles.accountTitleRow}>
-                        <Text style={styles.listItemTitle}>{account.name}</Text>
-                        {zoneCount !== undefined && (
-                          <View style={styles.zoneBadge}>
-                            <Text style={styles.zoneBadgeText}>{zoneCount}</Text>
-                          </View>
-                        )}
+                      <Text style={styles.listItemTitle}>{result.zone.name}</Text>
+                      <View style={styles.zoneInfo}>
+                        <Text style={styles.zoneStatus}>
+                          {result.zone.status === 'active' ? '✓ 活跃' : result.zone.status}
+                        </Text>
+                        <Text style={styles.zonePlan}>{result.zone.plan}</Text>
                       </View>
-                      <Text style={styles.listItemSubtitle}>ID: {account.id}</Text>
+                      <Text style={styles.accountLabel}>账户: {result.accountName}</Text>
                     </View>
                     <Text style={styles.arrow}>›</Text>
                   </TouchableOpacity>
-                );
-              })
-            )}
-          </ScrollView>
+                ))
+              )}
+            </ScrollView>
+          )}
         </>
       )}
 
@@ -526,5 +708,37 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: '600',
+  },
+  tabContainer: {
+    flexDirection: 'row',
+    backgroundColor: '#fff',
+    borderBottomWidth: 1,
+    borderBottomColor: '#e0e0e0',
+  },
+  tab: {
+    flex: 1,
+    paddingVertical: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderBottomWidth: 2,
+    borderBottomColor: 'transparent',
+  },
+  tabActive: {
+    borderBottomColor: '#22c55e',
+  },
+  tabText: {
+    fontSize: 16,
+    color: '#999',
+    fontWeight: '500',
+  },
+  tabTextActive: {
+    color: '#22c55e',
+    fontWeight: '600',
+  },
+  accountLabel: {
+    fontSize: 12,
+    color: '#f97316',
+    marginTop: 4,
+    fontWeight: '500',
   },
 });
