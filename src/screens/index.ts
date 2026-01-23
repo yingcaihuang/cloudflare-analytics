@@ -3,6 +3,7 @@
  * Central export for all screen components
  */
 
+export { default as HomeScreen } from './HomeScreen';
 export { default as TokenInputScreen } from './TokenInputScreen';
 export { default as TokenManagementScreen } from './TokenManagementScreen';
 export { default as AccountZoneSelectionScreen } from './AccountZoneSelectionScreen';

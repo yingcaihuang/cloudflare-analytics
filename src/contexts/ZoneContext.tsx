@@ -125,64 +125,94 @@ export const ZoneProvider: React.FC<ZoneProviderProps> = ({ children }) => {
   };
 
   /**
-   * Load accounts from Cloudflare API
+   * Load accounts from ALL tokens (not just current token)
    */
   const loadAccounts = async () => {
     try {
       setError(null);
 
-      // Check if user is authenticated
-      const token = await AuthManager.getCurrentToken();
-      if (!token) {
+      console.log('loadAccounts: Starting to fetch accounts from all tokens...');
+
+      // Get all saved tokens
+      const tokensList = await AuthManager.getTokensList();
+      console.log(`Found ${tokensList.length} tokens`);
+
+      if (tokensList.length === 0) {
+        console.log('loadAccounts: No tokens found');
         return;
       }
 
-      // Fetch accounts from Cloudflare API with pagination
-      const allAccounts: Account[] = [];
-      let page = 1;
-      let hasMore = true;
-
-      while (hasMore) {
-        const response = await fetch(
-          `https://api.cloudflare.com/client/v4/accounts?page=${page}&per_page=100`,
-          {
-            method: 'GET',
-            headers: {
-              'Authorization': `Bearer ${token}`,
-              'Content-Type': 'application/json',
-            },
+      // Fetch accounts from all tokens
+      const allAccountsMap = new Map<string, Account>(); // Use Map to deduplicate by account ID
+      
+      for (const tokenInfo of tokensList) {
+        try {
+          const token = await AuthManager.getTokenById(tokenInfo.id);
+          if (!token) {
+            console.log(`Skipping token ${tokenInfo.label}: token not found`);
+            continue;
           }
-        );
 
-        if (!response.ok) {
-          throw new Error(`Failed to fetch accounts: ${response.status}`);
+          console.log(`Fetching accounts for token: ${tokenInfo.label}`);
+
+          // Fetch accounts from Cloudflare API with pagination
+          let page = 1;
+          let hasMore = true;
+
+          while (hasMore) {
+            const response = await fetch(
+              `https://api.cloudflare.com/client/v4/accounts?page=${page}&per_page=100`,
+              {
+                method: 'GET',
+                headers: {
+                  'Authorization': `Bearer ${token}`,
+                  'Content-Type': 'application/json',
+                },
+              }
+            );
+
+            if (!response.ok) {
+              console.error(`Failed to fetch accounts for token ${tokenInfo.label}: ${response.status}`);
+              break; // Skip this token and continue with next
+            }
+
+            const data = await response.json();
+
+            if (!data.success) {
+              console.error(`API error for token ${tokenInfo.label}:`, data.errors?.[0]?.message);
+              break;
+            }
+
+            const pageAccounts: Account[] = data.result?.map((acc: any) => ({
+              id: acc.id,
+              name: acc.name,
+            })) || [];
+
+            // Add to map (automatically deduplicates by account ID)
+            pageAccounts.forEach(acc => {
+              allAccountsMap.set(acc.id, acc);
+            });
+
+            // Check if there are more pages
+            const resultInfo = data.result_info;
+            hasMore = resultInfo && resultInfo.page < resultInfo.total_pages;
+            page++;
+          }
+
+          console.log(`Token ${tokenInfo.label}: loaded ${allAccountsMap.size} unique accounts so far`);
+        } catch (err) {
+          console.error(`Error loading accounts for token ${tokenInfo.label}:`, err);
+          // Continue with next token
         }
-
-        const data = await response.json();
-        console.log(`Accounts API response (page ${page}):`, JSON.stringify(data, null, 2));
-
-        if (!data.success) {
-          throw new Error(data.errors?.[0]?.message || 'Failed to fetch accounts');
-        }
-
-        const pageAccounts: Account[] = data.result?.map((acc: any) => ({
-          id: acc.id,
-          name: acc.name,
-        })) || [];
-
-        allAccounts.push(...pageAccounts);
-
-        // Check if there are more pages
-        const resultInfo = data.result_info;
-        hasMore = resultInfo && resultInfo.page < resultInfo.total_pages;
-        page++;
       }
 
-      console.log(`Total accounts loaded: ${allAccounts.length}`);
+      // Convert Map to Array
+      const allAccounts = Array.from(allAccountsMap.values());
+      console.log(`Total unique accounts loaded from all tokens: ${allAccounts.length}`);
       setAccounts(allAccounts);
       
-      // Load total zones count
-      await loadTotalZonesCount(token);
+      // Load total zones count from all tokens
+      await loadTotalZonesCountFromAllTokens(tokensList);
     } catch (err) {
       console.error('Error loading accounts:', err);
       setError(err instanceof Error ? err.message : 'Failed to load accounts');
@@ -190,34 +220,51 @@ export const ZoneProvider: React.FC<ZoneProviderProps> = ({ children }) => {
   };
 
   /**
-   * Load total zones count across all accounts
+   * Load total zones count across all tokens
    */
-  const loadTotalZonesCount = async (token: string) => {
+  const loadTotalZonesCountFromAllTokens = async (tokensList: any[]) => {
     try {
-      // Fetch first page to get total count from result_info
-      const response = await fetch(
-        `https://api.cloudflare.com/client/v4/zones?per_page=1`,
-        {
-          method: 'GET',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
+      let totalZones = 0;
+
+      for (const tokenInfo of tokensList) {
+        try {
+          const token = await AuthManager.getTokenById(tokenInfo.id);
+          if (!token) {
+            continue;
+          }
+
+          // Fetch first page to get total count from result_info
+          const response = await fetch(
+            `https://api.cloudflare.com/client/v4/zones?per_page=1`,
+            {
+              method: 'GET',
+              headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+              },
+            }
+          );
+
+          if (!response.ok) {
+            console.error(`Failed to fetch zones count for token ${tokenInfo.label}: ${response.status}`);
+            continue;
+          }
+
+          const data = await response.json();
+          
+          if (data.success && data.result_info) {
+            const count = data.result_info.total_count || 0;
+            console.log(`Token ${tokenInfo.label}: ${count} zones`);
+            totalZones += count;
+          }
+        } catch (err) {
+          console.error(`Error loading zones count for token ${tokenInfo.label}:`, err);
+          // Continue with next token
         }
-      );
-
-      if (!response.ok) {
-        console.error(`Failed to fetch zones count: ${response.status}`);
-        return;
       }
 
-      const data = await response.json();
-      
-      if (data.success && data.result_info) {
-        const totalCount = data.result_info.total_count || 0;
-        console.log(`Total zones count: ${totalCount}`);
-        setTotalZonesCount(totalCount);
-      }
+      console.log(`Total zones count from all tokens: ${totalZones}`);
+      setTotalZonesCount(totalZones);
     } catch (err) {
       console.error('Error loading total zones count:', err);
       // Don't throw error, just log it - this is not critical

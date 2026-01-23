@@ -25,6 +25,21 @@ interface MenuItem {
 }
 
 const menuItems: MenuItem[] = [
+  // 设置功能
+  {
+    title: 'Token 管理',
+    description: '管理 API Tokens',
+    screen: 'TokenManagement',
+    icon: '🔐',
+    category: '设置',
+  },
+  {
+    title: '选择 Zone',
+    description: '切换账户或 Zone',
+    screen: 'AccountZoneSelection',
+    icon: '⚙️',
+    category: '设置',
+  },
   // 分析功能
   {
     title: '地理分布',
@@ -52,6 +67,13 @@ const menuItems: MenuItem[] = [
     description: '请求的内容类型分布',
     screen: 'ContentType',
     icon: '📄',
+    category: '流量分析',
+  },
+  {
+    title: '状态码分析',
+    description: 'HTTP 状态码分布',
+    screen: 'StatusCodes',
+    icon: '📊',
     category: '流量分析',
   },
   // 安全功能

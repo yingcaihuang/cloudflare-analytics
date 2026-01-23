@@ -4,6 +4,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { 
+  HomeScreen,
   TokenManagementScreen,
   AccountZoneSelectionScreen,
   DashboardScreen, 
@@ -26,7 +27,21 @@ import { View, Text, ActivityIndicator, StyleSheet, TouchableOpacity } from 'rea
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 
-// Main tabs after zone selection
+// Tab Icon Component
+const TabIcon: React.FC<{ name: string; color: string }> = ({ name, color }) => {
+  const icons: Record<string, string> = {
+    home: '🏠',
+    chart: '📊',
+    shield: '🛡️',
+    more: '⋯',
+  };
+
+  return (
+    <Text style={{ fontSize: 24, color }}>{icons[name] || '•'}</Text>
+  );
+};
+
+// Main tabs after authentication
 function MainTabs() {
   const { selectedAccount, zoneId, zoneName } = useZone();
 
@@ -34,49 +49,51 @@ function MainTabs() {
     <Tab.Navigator
       screenOptions={{
         tabBarStyle: { paddingBottom: 5, height: 60 },
+        tabBarActiveTintColor: '#f97316',
+        tabBarInactiveTintColor: '#6b7280',
       }}
     >
       <Tab.Screen 
-        name="Dashboard"
-        children={(props) => <DashboardScreen {...props} zoneId={zoneId!} zoneName={zoneName || undefined} />}
+        name="Home"
+        component={HomeScreen}
         options={{ 
-          title: '概览',
-          headerTitle: () => (
-            <View>
-              <Text style={{ fontSize: 18, fontWeight: 'bold' }}>流量概览</Text>
-              <Text style={{ fontSize: 12, color: '#666' }}>
-                {selectedAccount?.name} • {zoneName}
-              </Text>
-            </View>
-          ),
+          title: '首页',
+          headerShown: false,
+          tabBarIcon: ({ color }) => <TabIcon name="home" color={color} />,
         }}
       />
       <Tab.Screen 
-        name="StatusCodes"
-        children={(props) => <StatusCodesScreen {...props} zoneId={zoneId!} zoneName={zoneName || undefined} />}
+        name="Dashboard"
+        children={(props) => <DashboardScreen {...props} zoneId={zoneId || ''} zoneName={zoneName || undefined} />}
         options={{ 
-          title: '状态码',
+          title: '概览',
+          tabBarIcon: ({ color }) => <TabIcon name="chart" color={color} />,
           headerTitle: () => (
             <View>
-              <Text style={{ fontSize: 18, fontWeight: 'bold' }}>状态码分析</Text>
-              <Text style={{ fontSize: 12, color: '#666' }}>
-                {selectedAccount?.name} • {zoneName}
-              </Text>
+              <Text style={{ fontSize: 18, fontWeight: 'bold' }}>流量概览</Text>
+              {selectedAccount && zoneName && (
+                <Text style={{ fontSize: 12, color: '#666' }}>
+                  {selectedAccount.name} • {zoneName}
+                </Text>
+              )}
             </View>
           ),
         }}
       />
       <Tab.Screen 
         name="Security"
-        children={(props) => <SecurityScreen {...props} zoneId={zoneId!} zoneName={zoneName || undefined} />}
+        children={(props) => <SecurityScreen {...props} zoneId={zoneId || ''} zoneName={zoneName || undefined} />}
         options={{ 
           title: '安全',
+          tabBarIcon: ({ color }) => <TabIcon name="shield" color={color} />,
           headerTitle: () => (
             <View>
               <Text style={{ fontSize: 18, fontWeight: 'bold' }}>安全与缓存</Text>
-              <Text style={{ fontSize: 12, color: '#666' }}>
-                {selectedAccount?.name} • {zoneName}
-              </Text>
+              {selectedAccount && zoneName && (
+                <Text style={{ fontSize: 12, color: '#666' }}>
+                  {selectedAccount.name} • {zoneName}
+                </Text>
+              )}
             </View>
           ),
         }}
@@ -86,6 +103,7 @@ function MainTabs() {
         component={MoreScreen}
         options={{ 
           title: '更多',
+          tabBarIcon: ({ color }) => <TabIcon name="more" color={color} />,
           headerShown: false,
         }}
       />
@@ -96,29 +114,16 @@ function MainTabs() {
 function AppNavigator() {
   const [isInitializing, setIsInitializing] = useState(true);
   const [hasToken, setHasToken] = useState(false);
-  const [initialRoute, setInitialRoute] = useState<string>('TokenManagement');
   const { zoneId, refreshAccounts, setZoneId, setSelectedAccount } = useZone();
 
   useEffect(() => {
     checkToken();
   }, []);
 
-  useEffect(() => {
-    // Determine initial route based on state
-    if (!isInitializing) {
-      if (!hasToken) {
-        setInitialRoute('TokenManagement');
-      } else if (!zoneId) {
-        setInitialRoute('AccountZoneSelection');
-      } else {
-        setInitialRoute('MainTabs');
-      }
-    }
-  }, [isInitializing, hasToken, zoneId]);
-
   const checkToken = async () => {
     try {
       const token = await AuthManager.getCurrentToken();
+      console.log('Token check result:', !!token);
       setHasToken(!!token);
       if (token) {
         await refreshAccounts();
@@ -154,12 +159,22 @@ function AppNavigator() {
 
   return (
     <Stack.Navigator
-      initialRouteName={initialRoute}
       screenOptions={{
         gestureEnabled: true,
         animation: 'slide_from_right',
       }}
+      initialRouteName={hasToken ? 'MainTabs' : 'TokenManagement'}
     >
+      {/* Main Tabs - shown when user has token */}
+      <Stack.Screen 
+        name="MainTabs" 
+        component={MainTabs}
+        options={{
+          headerShown: false,
+        }}
+      />
+
+      {/* Token Management */}
       <Stack.Screen 
         name="TokenManagement"
         options={{
@@ -183,12 +198,11 @@ function AppNavigator() {
           headerLeft: () => (
             <TouchableOpacity 
               onPress={() => {
-                handleLogout();
-                navigation.navigate('TokenManagement');
+                navigation.goBack();
               }}
               style={{ marginLeft: 8 }}
             >
-              <Text style={{ color: '#f97316', fontSize: 17 }}>‹ Token管理</Text>
+              <Text style={{ color: '#f97316', fontSize: 17 }}>‹ 返回</Text>
             </TouchableOpacity>
           ),
         })}
@@ -197,35 +211,22 @@ function AppNavigator() {
           <AccountZoneSelectionScreen 
             {...props}
             onComplete={() => {
-              props.navigation.navigate('MainTabs');
+              props.navigation.goBack();
             }}
           />
         )}
       </Stack.Screen>
 
+      {/* Additional Feature Screens */}
       <Stack.Screen 
-        name="MainTabs" 
-        component={MainTabs}
-        options={({ navigation }) => ({
-          headerShown: true,
-          title: 'Cloudflare Analytics',
-          headerLeft: () => (
-            <TouchableOpacity 
-              onPress={() => {
-                // Reset zone selection and go back
-                setZoneId(null);
-                setSelectedAccount(null);
-                navigation.navigate('AccountZoneSelection');
-              }}
-              style={{ marginLeft: 8 }}
-            >
-              <Text style={{ color: '#f97316', fontSize: 17 }}>‹ 切换Zone</Text>
-            </TouchableOpacity>
-          ),
-        })}
+        name="StatusCodes"
+        component={StatusCodesScreen}
+        options={{
+          title: '状态码分析',
+          headerBackTitle: '返回',
+        }}
       />
 
-      {/* Additional Feature Screens */}
       <Stack.Screen 
         name="GeoDistribution"
         component={GeoDistributionScreen}

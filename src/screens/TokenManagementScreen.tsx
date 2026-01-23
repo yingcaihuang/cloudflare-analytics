@@ -102,7 +102,7 @@ export default function TokenManagementScreen({ onTokenSelected }: TokenManageme
           text: 'OK', 
           onPress: () => {
             onTokenSelected();
-            navigation.navigate('AccountZoneSelection' as never);
+            navigation.navigate('MainTabs' as never);
           }
         }
       ]);
@@ -119,7 +119,7 @@ export default function TokenManagementScreen({ onTokenSelected }: TokenManageme
       await AuthManager.setCurrentToken(tokenId);
       setCurrentTokenId(tokenId);
       onTokenSelected();
-      navigation.navigate('AccountZoneSelection' as never);
+      navigation.navigate('MainTabs' as never);
     } catch (error) {
       console.error('Error selecting token:', error);
       Alert.alert('Error', 'Failed to select token');
