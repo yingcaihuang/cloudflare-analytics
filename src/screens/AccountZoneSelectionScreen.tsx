@@ -11,6 +11,7 @@ import {
   ScrollView,
   TouchableOpacity,
   ActivityIndicator,
+  TextInput,
 } from 'react-native';
 import { useZone } from '../contexts';
 
@@ -33,6 +34,7 @@ export default function AccountZoneSelectionScreen({ onComplete }: AccountZoneSe
   const [step, setStep] = useState<'account' | 'zone'>('account');
   const [isLoadingZones, setIsLoadingZones] = useState(false);
   const [sortOrder, setSortOrder] = useState<'desc' | 'asc'>('desc'); // 默认降序
+  const [zoneSearchQuery, setZoneSearchQuery] = useState(''); // Zone 搜索关键词
 
   // Debug logging
   console.log('AccountZoneSelectionScreen state:', {
@@ -61,6 +63,22 @@ export default function AccountZoneSelectionScreen({ onComplete }: AccountZoneSe
 
   const handleBackToAccounts = () => {
     setStep('account');
+    setZoneSearchQuery(''); // 清空搜索
+  };
+
+  /**
+   * Filter zones based on search query
+   */
+  const getFilteredZones = () => {
+    if (!zoneSearchQuery.trim()) {
+      return zones;
+    }
+
+    const query = zoneSearchQuery.toLowerCase().trim();
+    return zones.filter(zone => 
+      zone.name.toLowerCase().includes(query) ||
+      zone.id.toLowerCase().includes(query)
+    );
   };
 
   /**
@@ -175,6 +193,29 @@ export default function AccountZoneSelectionScreen({ onComplete }: AccountZoneSe
             <Text style={styles.backButtonText}>‹ 返回账户选择</Text>
           </TouchableOpacity>
           
+          {/* Zone Search Bar */}
+          {!isLoadingZones && zones.length > 0 && (
+            <View style={styles.searchContainer}>
+              <TextInput
+                style={styles.searchInput}
+                placeholder="搜索 Zone 名称或 ID..."
+                placeholderTextColor="#999"
+                value={zoneSearchQuery}
+                onChangeText={setZoneSearchQuery}
+                autoCapitalize="none"
+                autoCorrect={false}
+              />
+              {zoneSearchQuery.length > 0 && (
+                <TouchableOpacity 
+                  style={styles.clearButton}
+                  onPress={() => setZoneSearchQuery('')}
+                >
+                  <Text style={styles.clearButtonText}>✕</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+          )}
+          
           {isLoadingZones ? (
             <View style={styles.loadingContainer}>
               <ActivityIndicator size="large" color="#f97316" />
@@ -190,8 +231,13 @@ export default function AccountZoneSelectionScreen({ onComplete }: AccountZoneSe
                     <Text style={styles.retryButtonText}>选择其他账户</Text>
                   </TouchableOpacity>
                 </View>
+              ) : getFilteredZones().length === 0 ? (
+                <View style={styles.emptyContainer}>
+                  <Text style={styles.emptyText}>没有找到匹配的 Zone</Text>
+                  <Text style={styles.emptySubtext}>尝试其他搜索关键词</Text>
+                </View>
               ) : (
-                zones.map((zone) => (
+                getFilteredZones().map((zone) => (
                   <TouchableOpacity
                     key={zone.id}
                     style={[
@@ -295,6 +341,38 @@ const styles = StyleSheet.create({
     color: '#f97316',
     fontWeight: '600',
   },
+  searchContainer: {
+    backgroundColor: '#fff',
+    padding: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e0e0e0',
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  searchInput: {
+    flex: 1,
+    backgroundColor: '#f5f5f5',
+    borderRadius: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    fontSize: 16,
+    color: '#333',
+  },
+  clearButton: {
+    marginLeft: 8,
+    padding: 8,
+    backgroundColor: '#f0f0f0',
+    borderRadius: 20,
+    width: 36,
+    height: 36,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  clearButtonText: {
+    fontSize: 18,
+    color: '#666',
+    fontWeight: 'bold',
+  },
   listContainer: {
     flex: 1,
   },
@@ -385,6 +463,11 @@ const styles = StyleSheet.create({
     color: '#666',
     textAlign: 'center',
     marginBottom: 20,
+  },
+  emptySubtext: {
+    fontSize: 14,
+    color: '#999',
+    textAlign: 'center',
   },
   retryButton: {
     backgroundColor: '#f97316',
