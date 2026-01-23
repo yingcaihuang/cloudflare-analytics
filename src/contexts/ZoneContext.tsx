@@ -21,6 +21,7 @@ interface ZoneContextType {
   zoneId: string | null;
   zoneName: string | null;
   accountZoneCounts: Map<string, number>; // Map of account ID to zone count
+  totalZonesCount: number; // Total zones across all accounts
   setSelectedAccount: (account: Account | null) => Promise<void>;
   setZoneId: (zoneId: string | null) => void;
   isLoading: boolean;
@@ -51,6 +52,7 @@ export const ZoneProvider: React.FC<ZoneProviderProps> = ({ children }) => {
   const [zoneId, setZoneIdState] = useState<string | null>(null);
   const [zoneName, setZoneName] = useState<string | null>(null);
   const [accountZoneCounts, setAccountZoneCounts] = useState<Map<string, number>>(new Map());
+  const [totalZonesCount, setTotalZonesCount] = useState<number>(0);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -178,9 +180,47 @@ export const ZoneProvider: React.FC<ZoneProviderProps> = ({ children }) => {
 
       console.log(`Total accounts loaded: ${allAccounts.length}`);
       setAccounts(allAccounts);
+      
+      // Load total zones count
+      await loadTotalZonesCount(token);
     } catch (err) {
       console.error('Error loading accounts:', err);
       setError(err instanceof Error ? err.message : 'Failed to load accounts');
+    }
+  };
+
+  /**
+   * Load total zones count across all accounts
+   */
+  const loadTotalZonesCount = async (token: string) => {
+    try {
+      // Fetch first page to get total count from result_info
+      const response = await fetch(
+        `https://api.cloudflare.com/client/v4/zones?per_page=1`,
+        {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+
+      if (!response.ok) {
+        console.error(`Failed to fetch zones count: ${response.status}`);
+        return;
+      }
+
+      const data = await response.json();
+      
+      if (data.success && data.result_info) {
+        const totalCount = data.result_info.total_count || 0;
+        console.log(`Total zones count: ${totalCount}`);
+        setTotalZonesCount(totalCount);
+      }
+    } catch (err) {
+      console.error('Error loading total zones count:', err);
+      // Don't throw error, just log it - this is not critical
     }
   };
 
@@ -358,6 +398,7 @@ export const ZoneProvider: React.FC<ZoneProviderProps> = ({ children }) => {
       zoneId, 
       zoneName,
       accountZoneCounts,
+      totalZonesCount,
       setSelectedAccount,
       setZoneId, 
       isLoading, 

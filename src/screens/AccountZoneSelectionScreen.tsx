@@ -26,6 +26,7 @@ export default function AccountZoneSelectionScreen({ onComplete }: AccountZoneSe
     zones, 
     zoneId,
     accountZoneCounts,
+    totalZonesCount,
     setSelectedAccount, 
     setZoneId,
     isLoading 
@@ -139,7 +140,7 @@ export default function AccountZoneSelectionScreen({ onComplete }: AccountZoneSe
             </Text>
             <Text style={styles.subtitle}>
               {step === 'account' 
-                ? `找到 ${accounts.length} 个账户` 
+                ? `${accounts.length} 个账户${totalZonesCount > 0 ? ` · ${totalZonesCount} 个 Zones` : ''}` 
                 : `${selectedAccount?.name} - ${zones.length} 个zones`}
             </Text>
           </View>
