@@ -17,12 +17,13 @@ import {
   Alert,
 } from 'react-native';
 import { useStatusCodes } from '../hooks/useStatusCodes';
+import { useZone } from '../contexts';
 import { MetricsQueryParams } from '../types';
 import { PieChart, PieChartDataItem, ZoneSelector } from '../components';
 import { ExportManager } from '../services';
 
 interface StatusCodesScreenProps {
-  zoneId: string;
+  zoneId?: string;
   zoneName?: string;
 }
 
@@ -35,7 +36,25 @@ const STATUS_COLORS = {
   other: '#95a5a6', // Gray for other
 };
 
-export default function StatusCodesScreen({ zoneId, zoneName = 'Unknown Zone' }: StatusCodesScreenProps) {
+export default function StatusCodesScreen({ zoneId: propZoneId, zoneName: propZoneName }: StatusCodesScreenProps) {
+  // Get zoneId and zoneName from context if not provided as props
+  const { zoneId: contextZoneId, zoneName: contextZoneName } = useZone();
+  const zoneId = propZoneId || contextZoneId;
+  const zoneName = propZoneName || contextZoneName || 'Unknown Zone';
+
+  // If no zone is selected, show message
+  if (!zoneId) {
+    return (
+      <View style={styles.centerContainer}>
+        <Text style={styles.errorTitle}>No Zone Selected</Text>
+        <Text style={styles.errorMessage}>
+          Please select a zone from the account/zone selection screen to view status codes.
+        </Text>
+        <ZoneSelector />
+      </View>
+    );
+  }
+
   const [refreshing, setRefreshing] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [exporting, setExporting] = useState(false);
@@ -114,8 +133,7 @@ export default function StatusCodesScreen({ zoneId, zoneName = 'Unknown Zone' }:
         plan: 'Unknown',
       };
 
-      await ExportManager.exportStatusCodes(data, zone, dateRanges.startDate, dateRanges.endDate);
-      const timeRange = { start: startDate, end: endDate };
+      const timeRange = { start: dateRanges.startDate, end: dateRanges.endDate };
       await ExportManager.exportStatusCodes(data, zone, timeRange);
       Alert.alert('Success', 'Status code data exported successfully!');
     } catch (error) {
