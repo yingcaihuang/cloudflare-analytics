@@ -20,6 +20,7 @@ interface ZoneContextType {
   zones: Zone[];
   zoneId: string | null;
   zoneName: string | null;
+  accountZoneCounts: Map<string, number>; // Map of account ID to zone count
   setSelectedAccount: (account: Account | null) => Promise<void>;
   setZoneId: (zoneId: string | null) => void;
   isLoading: boolean;
@@ -49,6 +50,7 @@ export const ZoneProvider: React.FC<ZoneProviderProps> = ({ children }) => {
   const [zones, setZones] = useState<Zone[]>([]);
   const [zoneId, setZoneIdState] = useState<string | null>(null);
   const [zoneName, setZoneName] = useState<string | null>(null);
+  const [accountZoneCounts, setAccountZoneCounts] = useState<Map<string, number>>(new Map());
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -241,6 +243,13 @@ export const ZoneProvider: React.FC<ZoneProviderProps> = ({ children }) => {
       console.log(`Total zones loaded for ${account.name}: ${allZones.length}`);
       setZones(allZones);
 
+      // Update zone count for this account
+      setAccountZoneCounts(prev => {
+        const newMap = new Map(prev);
+        newMap.set(account.id, allZones.length);
+        return newMap;
+      });
+
       // Cache zones for this account
       await AsyncStorage.setItem(ZONES_CACHE_KEY, JSON.stringify(allZones));
 
@@ -347,7 +356,8 @@ export const ZoneProvider: React.FC<ZoneProviderProps> = ({ children }) => {
       accountTag,
       zones,
       zoneId, 
-      zoneName, 
+      zoneName,
+      accountZoneCounts,
       setSelectedAccount,
       setZoneId, 
       isLoading, 

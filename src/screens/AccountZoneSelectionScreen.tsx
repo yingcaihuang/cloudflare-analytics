@@ -24,6 +24,7 @@ export default function AccountZoneSelectionScreen({ onComplete }: AccountZoneSe
     selectedAccount, 
     zones, 
     zoneId,
+    accountZoneCounts,
     setSelectedAccount, 
     setZoneId,
     isLoading 
@@ -31,6 +32,7 @@ export default function AccountZoneSelectionScreen({ onComplete }: AccountZoneSe
 
   const [step, setStep] = useState<'account' | 'zone'>('account');
   const [isLoadingZones, setIsLoadingZones] = useState(false);
+  const [sortOrder, setSortOrder] = useState<'desc' | 'asc'>('desc'); // 默认降序
 
   // Debug logging
   console.log('AccountZoneSelectionScreen state:', {
@@ -61,6 +63,43 @@ export default function AccountZoneSelectionScreen({ onComplete }: AccountZoneSe
     setStep('account');
   };
 
+  /**
+   * Toggle sort order between desc and asc
+   */
+  const handleToggleSort = () => {
+    setSortOrder(prev => prev === 'desc' ? 'asc' : 'desc');
+  };
+
+  /**
+   * Get sorted accounts list
+   * Accounts with zone counts are sorted by count, others remain at the end
+   */
+  const getSortedAccounts = () => {
+    const accountsWithCounts: any[] = [];
+    const accountsWithoutCounts: any[] = [];
+
+    accounts.forEach(account => {
+      const zoneCount = accountZoneCounts.get(account.id);
+      if (zoneCount !== undefined) {
+        accountsWithCounts.push({ ...account, zoneCount });
+      } else {
+        accountsWithoutCounts.push(account);
+      }
+    });
+
+    // Sort accounts with zone counts
+    accountsWithCounts.sort((a, b) => {
+      if (sortOrder === 'desc') {
+        return b.zoneCount - a.zoneCount;
+      } else {
+        return a.zoneCount - b.zoneCount;
+      }
+    });
+
+    // Return sorted accounts with counts first, then accounts without counts
+    return [...accountsWithCounts, ...accountsWithoutCounts];
+  };
+
   // Only show loading for initial account load, not when switching to zone view
   if (isLoading && step === 'account') {
     return (
@@ -75,32 +114,57 @@ export default function AccountZoneSelectionScreen({ onComplete }: AccountZoneSe
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.title}>
-          {step === 'account' ? '选择账户' : '选择Zone'}
-        </Text>
-        <Text style={styles.subtitle}>
-          {step === 'account' 
-            ? `找到 ${accounts.length} 个账户` 
-            : `${selectedAccount?.name} - ${zones.length} 个zones`}
-        </Text>
+        <View style={styles.headerContent}>
+          <View>
+            <Text style={styles.title}>
+              {step === 'account' ? '选择账户' : '选择Zone'}
+            </Text>
+            <Text style={styles.subtitle}>
+              {step === 'account' 
+                ? `找到 ${accounts.length} 个账户` 
+                : `${selectedAccount?.name} - ${zones.length} 个zones`}
+            </Text>
+          </View>
+          {step === 'account' && accountZoneCounts.size > 0 && (
+            <TouchableOpacity 
+              style={styles.sortButton}
+              onPress={handleToggleSort}
+            >
+              <Text style={styles.sortButtonText}>
+                {sortOrder === 'desc' ? '↓' : '↑'}
+              </Text>
+              <Text style={styles.sortButtonLabel}>排序</Text>
+            </TouchableOpacity>
+          )}
+        </View>
       </View>
 
       {/* Account Selection */}
       {step === 'account' && (
         <ScrollView style={styles.listContainer}>
-          {accounts.map((account) => (
-            <TouchableOpacity
-              key={account.id}
-              style={styles.listItem}
-              onPress={() => handleAccountSelect(account)}
-            >
-              <View style={styles.listItemContent}>
-                <Text style={styles.listItemTitle}>{account.name}</Text>
-                <Text style={styles.listItemSubtitle}>ID: {account.id}</Text>
-              </View>
-              <Text style={styles.arrow}>›</Text>
-            </TouchableOpacity>
-          ))}
+          {getSortedAccounts().map((account) => {
+            const zoneCount = accountZoneCounts.get(account.id);
+            return (
+              <TouchableOpacity
+                key={account.id}
+                style={styles.listItem}
+                onPress={() => handleAccountSelect(account)}
+              >
+                <View style={styles.listItemContent}>
+                  <View style={styles.accountTitleRow}>
+                    <Text style={styles.listItemTitle}>{account.name}</Text>
+                    {zoneCount !== undefined && (
+                      <View style={styles.zoneBadge}>
+                        <Text style={styles.zoneBadgeText}>{zoneCount}</Text>
+                      </View>
+                    )}
+                  </View>
+                  <Text style={styles.listItemSubtitle}>ID: {account.id}</Text>
+                </View>
+                <Text style={styles.arrow}>›</Text>
+              </TouchableOpacity>
+            );
+          })}
         </ScrollView>
       )}
 
@@ -186,6 +250,11 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#e0e0e0',
   },
+  headerContent: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
   title: {
     fontSize: 28,
     fontWeight: 'bold',
@@ -195,6 +264,25 @@ const styles = StyleSheet.create({
   subtitle: {
     fontSize: 16,
     color: '#666',
+  },
+  sortButton: {
+    backgroundColor: '#f0f0f0',
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    minWidth: 60,
+  },
+  sortButtonText: {
+    fontSize: 20,
+    color: '#22c55e',
+    fontWeight: 'bold',
+  },
+  sortButtonLabel: {
+    fontSize: 11,
+    color: '#666',
+    marginTop: 2,
   },
   backButton: {
     backgroundColor: '#fff',
@@ -233,11 +321,30 @@ const styles = StyleSheet.create({
   listItemContent: {
     flex: 1,
   },
+  accountTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
   listItemTitle: {
     fontSize: 18,
     fontWeight: '600',
     color: '#333',
-    marginBottom: 4,
+  },
+  zoneBadge: {
+    backgroundColor: '#22c55e',
+    borderRadius: 12,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    marginLeft: 8,
+    minWidth: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  zoneBadgeText: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: 'bold',
   },
   listItemSubtitle: {
     fontSize: 13,
