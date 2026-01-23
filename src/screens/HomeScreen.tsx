@@ -51,11 +51,13 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
   };
 
   const handleManageTokens = () => {
-    navigation.navigate('More', { screen: 'TokenManagement' });
+    // Navigate to TokenManagement screen (in Stack navigator)
+    navigation.getParent()?.navigate('TokenManagement');
   };
 
   const handleSelectZone = () => {
-    navigation.navigate('More', { screen: 'AccountZoneSelection' });
+    // Navigate to AccountZoneSelection screen (in Stack navigator)
+    navigation.getParent()?.navigate('AccountZoneSelection');
   };
 
   const handleViewDashboard = () => {
