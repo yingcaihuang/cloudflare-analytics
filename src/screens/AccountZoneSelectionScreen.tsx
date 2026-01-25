@@ -28,7 +28,8 @@ export default function AccountZoneSelectionScreen({ onComplete }: AccountZoneSe
     zoneId,
     accountZoneCounts,
     totalZonesCount,
-    setSelectedAccount, 
+    setSelectedAccount,
+    setAccountAndZoneFromSearch,
     setZoneId,
     isLoading 
   } = useZone();
@@ -118,6 +119,7 @@ export default function AccountZoneSelectionScreen({ onComplete }: AccountZoneSe
 
               // Add matching zones to results
               matchingZones.forEach((zone: any) => {
+                console.log('Found matching zone in search:', zone.id, zone.name, 'in account:', account.name);
                 results.push({
                   zone: {
                     id: zone.id,
@@ -157,18 +159,41 @@ export default function AccountZoneSelectionScreen({ onComplete }: AccountZoneSe
     }
   };
 
+  const [isSelectingGlobalZone, setIsSelectingGlobalZone] = useState(false);
+
   /**
    * Handle selecting a zone from global search
    */
   const handleGlobalZoneSelect = async (result: { zone: any; accountName: string; accountId: string }) => {
-    // Find the account
-    const account = accounts.find(acc => acc.id === result.accountId);
-    if (!account) return;
+    if (isSelectingGlobalZone) {
+      console.log('Already selecting a global zone, ignoring');
+      return;
+    }
 
-    // Set the account and zone
-    await setSelectedAccount(account);
-    setZoneId(result.zone.id);
-    onComplete();
+    try {
+      setIsSelectingGlobalZone(true);
+      
+      // Find the account
+      const account = accounts.find(acc => acc.id === result.accountId);
+      if (!account) {
+        console.error('Account not found:', result.accountId);
+        return;
+      }
+
+      console.log('Selecting global zone:', result.zone.id, result.zone.name, 'from account:', account.name);
+
+      // Use the new method to set account and zone directly
+      await setAccountAndZoneFromSearch(account, result.zone.id, result.zone.name);
+      
+      console.log('Zone selection completed');
+      
+      // Complete the selection
+      onComplete();
+    } catch (error) {
+      console.error('Error selecting global zone:', error);
+    } finally {
+      setIsSelectingGlobalZone(false);
+    }
   };
 
   /**

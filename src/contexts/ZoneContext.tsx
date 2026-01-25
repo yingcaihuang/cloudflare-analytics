@@ -23,6 +23,7 @@ interface ZoneContextType {
   accountZoneCounts: Map<string, number>; // Map of account ID to zone count
   totalZonesCount: number; // Total zones across all accounts
   setSelectedAccount: (account: Account | null) => Promise<void>;
+  setAccountAndZoneFromSearch: (account: Account, zoneId: string, zoneName: string) => Promise<void>;
   setZoneId: (zoneId: string | null) => void;
   isLoading: boolean;
   error: string | null;
@@ -328,6 +329,7 @@ export const ZoneProvider: React.FC<ZoneProviderProps> = ({ children }) => {
       }
 
       console.log(`Total zones loaded for ${account.name}: ${allZones.length}`);
+      console.log('Loaded zone IDs:', allZones.map(z => z.id));
       setZones(allZones);
 
       // Update zone count for this account
@@ -336,6 +338,15 @@ export const ZoneProvider: React.FC<ZoneProviderProps> = ({ children }) => {
         newMap.set(account.id, allZones.length);
         return newMap;
       });
+
+      // If we have a selected zone ID but no zone name, update it now
+      if (zoneId && !zoneName) {
+        const selectedZone = allZones.find(z => z.id === zoneId);
+        if (selectedZone) {
+          console.log('Updating zone name after zones loaded:', selectedZone.name);
+          setZoneName(selectedZone.name);
+        }
+      }
 
       // Cache zones for this account
       await AsyncStorage.setItem(ZONES_CACHE_KEY, JSON.stringify(allZones));
@@ -346,6 +357,42 @@ export const ZoneProvider: React.FC<ZoneProviderProps> = ({ children }) => {
       setError(err instanceof Error ? err.message : 'Failed to load zones');
       setZones([]); // Set empty array on error
       return [];
+    }
+  };
+
+  /**
+   * Set account and zone directly from global search result
+   * This bypasses the normal zone loading process
+   */
+  const setAccountAndZoneFromSearch = async (account: Account, zoneId: string, zoneName: string) => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      
+      // Set account
+      setSelectedAccountState(account);
+      setAccountTag(account.id);
+      
+      // Set zone directly
+      setZoneIdState(zoneId);
+      setZoneName(zoneName);
+      
+      // Persist selections
+      await AsyncStorage.setItem(SELECTED_ACCOUNT_KEY, JSON.stringify(account));
+      await AsyncStorage.setItem(SELECTED_ZONE_KEY, zoneId);
+      
+      console.log('Account and zone set directly from search:', account.name, zoneName);
+      
+      // Load zones in background for future use
+      loadZones(account).catch(err => {
+        console.error('Background zone loading failed:', err);
+      });
+      
+    } catch (err) {
+      console.error('Error setting account and zone from search:', err);
+      setError(err instanceof Error ? err.message : 'Failed to set account and zone');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -396,12 +443,22 @@ export const ZoneProvider: React.FC<ZoneProviderProps> = ({ children }) => {
    * Set the selected zone ID
    */
   const setZoneId = async (newZoneId: string | null) => {
+    console.log('Setting zone ID:', newZoneId);
+    console.log('Current zones count:', zones.length);
+    console.log('Current zones:', zones.map(z => ({ id: z.id, name: z.name })));
+    
     setZoneIdState(newZoneId);
     
     if (newZoneId) {
       const zone = zones.find(z => z.id === newZoneId);
       if (zone) {
+        console.log('Found zone:', zone.name);
         setZoneName(zone.name);
+      } else {
+        console.warn('Zone not found in zones array:', newZoneId, 'Available zones:', zones.length);
+        console.log('Available zone IDs:', zones.map(z => z.id));
+        // Still set the zone ID even if we can't find the name
+        // The name might be set later when zones are loaded
       }
       
       // Persist zone selection
@@ -447,6 +504,7 @@ export const ZoneProvider: React.FC<ZoneProviderProps> = ({ children }) => {
       accountZoneCounts,
       totalZonesCount,
       setSelectedAccount,
+      setAccountAndZoneFromSearch,
       setZoneId, 
       isLoading, 
       error,
