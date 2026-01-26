@@ -16,7 +16,7 @@ import {
   Alert,
 } from 'react-native';
 import { useBotAnalysis } from '../hooks/useBotAnalysis';
-import { BarChart, ZoneSelector } from '../components';
+import { BarChart } from '../components';
 import { useTheme } from '../contexts/ThemeContext';
 
 export default function BotAnalysisScreen() {
@@ -169,15 +169,12 @@ export default function BotAnalysisScreen() {
   }
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <ZoneSelector />
-      
-      <ScrollView
-        style={styles.scrollView}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
-        }
-      >
+    <ScrollView
+      style={[styles.container, { backgroundColor: colors.background }]}
+      refreshControl={
+        <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
+      }
+    >
         {/* Header */}
         <View style={[styles.header, { backgroundColor: colors.surface, borderBottomColor: colors.border }]}>
           <Text style={[styles.title, { color: colors.text }]}>Bot Analysis</Text>
@@ -305,16 +302,12 @@ export default function BotAnalysisScreen() {
             • 81-100: Very likely bot traffic
           </Text>
         </View>
-      </ScrollView>
-    </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-  },
-  scrollView: {
     flex: 1,
   },
   centerContainer: {

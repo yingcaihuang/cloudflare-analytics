@@ -19,7 +19,7 @@ import {
 import { useStatusCodes } from '../hooks/useStatusCodes';
 import { useZone } from '../contexts';
 import { MetricsQueryParams } from '../types';
-import { PieChart, PieChartDataItem, ZoneSelector } from '../components';
+import { PieChart, PieChartDataItem } from '../components';
 import { ExportManager } from '../services';
 import { useTheme } from '../contexts/ThemeContext';
 
@@ -50,9 +50,8 @@ export default function StatusCodesScreen({ zoneId: propZoneId, zoneName: propZo
       <View style={[styles.centerContainer, { backgroundColor: colors.background }]}>
         <Text style={[styles.errorTitle, { color: colors.error }]}>No Zone Selected</Text>
         <Text style={[styles.errorMessage, { color: colors.textSecondary }]}>
-          Please select a zone from the account/zone selection screen to view status codes.
+          Please select a zone from the home screen to view status codes.
         </Text>
-        <ZoneSelector />
       </View>
     );
   }
@@ -343,11 +342,6 @@ export default function StatusCodesScreen({ zoneId: propZoneId, zoneName: propZo
         />
       }
     >
-      {/* Zone Selector */}
-      <View style={styles.zoneSelectorContainer}>
-        <ZoneSelector />
-      </View>
-
       {/* Header */}
       <View style={styles.header}>
         <View style={styles.headerTop}>
@@ -477,9 +471,6 @@ const styles = StyleSheet.create({
   },
   contentContainer: {
     padding: 16,
-  },
-  zoneSelectorContainer: {
-    marginBottom: 16,
   },
   centerContainer: {
     flex: 1,

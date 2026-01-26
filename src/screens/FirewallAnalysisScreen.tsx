@@ -16,7 +16,6 @@ import {
   Alert,
 } from 'react-native';
 import { useFirewallAnalysis } from '../hooks/useFirewallAnalysis';
-import { ZoneSelector } from '../components';
 import { useTheme } from '../contexts/ThemeContext';
 
 export default function FirewallAnalysisScreen() {
@@ -186,15 +185,12 @@ export default function FirewallAnalysisScreen() {
   const displayRules = showAllRules ? data.rules : data.topRules;
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <ZoneSelector />
-      
-      <ScrollView
-        style={styles.scrollView}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
-        }
-      >
+    <ScrollView
+      style={[styles.container, { backgroundColor: colors.background }]}
+      refreshControl={
+        <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
+      }
+    >
         {/* Header */}
         <View style={[styles.header, { backgroundColor: colors.surface, borderBottomColor: colors.border }]}>
           <Text style={[styles.title, { color: colors.text }]}>Firewall Analysis</Text>
@@ -348,16 +344,12 @@ export default function FirewallAnalysisScreen() {
             • <Text style={{ color: colors.success }}>ALLOW/LOG</Text>: Request was allowed or logged
           </Text>
         </View>
-      </ScrollView>
-    </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-  },
-  scrollView: {
     flex: 1,
   },
   centerContainer: {

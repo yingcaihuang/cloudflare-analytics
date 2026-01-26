@@ -18,7 +18,7 @@ import {
 } from 'react-native';
 import { useSecurityMetrics } from '../hooks/useSecurityMetrics';
 import { MetricsQueryParams } from '../types';
-import { SecurityEventTrendChart, ZoneSelector } from '../components';
+import { SecurityEventTrendChart } from '../components';
 import { ExportManager } from '../services';
 import { useTheme } from '../contexts/ThemeContext';
 
@@ -204,11 +204,6 @@ export default function SecurityScreen({ zoneId, zoneName = 'Unknown Zone' }: Se
         />
       }
     >
-      {/* Zone Selector */}
-      <View style={styles.zoneSelectorContainer}>
-        <ZoneSelector />
-      </View>
-
       {/* Header */}
       <View style={styles.header}>
         <View style={styles.headerTop}>
@@ -470,9 +465,6 @@ const styles = StyleSheet.create({
   },
   contentContainer: {
     padding: 16,
-  },
-  zoneSelectorContainer: {
-    marginBottom: 16,
   },
   centerContainer: {
     flex: 1,
