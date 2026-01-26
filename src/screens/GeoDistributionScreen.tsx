@@ -19,6 +19,7 @@ import {
 import { useGeoDistribution } from '../hooks/useGeoDistribution';
 import { useZone } from '../contexts/ZoneContext';
 import { MetricsQueryParams } from '../types';
+import { useTheme } from '../contexts/ThemeContext';
 
 interface CountryItem {
   code: string;
@@ -29,6 +30,7 @@ interface CountryItem {
 }
 
 export default function GeoDistributionScreen() {
+  const { colors } = useTheme();
   const { zoneId, accountTag } = useZone();
   const [refreshing, setRefreshing] = useState(false);
   const [selectedCountry, setSelectedCountry] = useState<CountryItem | null>(null);
@@ -171,18 +173,22 @@ export default function GeoDistributionScreen() {
 
     return (
       <TouchableOpacity
-        style={[styles.countryItem, isTopTen && styles.countryItemTopTen]}
+        style={[
+          styles.countryItem,
+          { borderBottomColor: colors.border },
+          isTopTen && { backgroundColor: colors.primary + '10' }
+        ]}
         onPress={() => handleCountryClick(item)}
         key={`${item.code}-${item.name}-${index}`}
       >
         <Text style={styles.countryFlag}>{flag}</Text>
         <View style={styles.countryInfo}>
-          <Text style={styles.countryName}>{item.name}</Text>
-          <Text style={styles.countryCode}>{item.code}</Text>
+          <Text style={[styles.countryName, { color: colors.text }]}>{item.name}</Text>
+          <Text style={[styles.countryCode, { color: colors.textSecondary }]}>{item.code}</Text>
         </View>
         <View style={styles.countryStats}>
-          <Text style={styles.countryRequests}>{formatNumber(item.requests)}</Text>
-          <Text style={styles.countryPercentage}>{formatPercentage(item.percentage)}</Text>
+          <Text style={[styles.countryRequests, { color: colors.text }]}>{formatNumber(item.requests)}</Text>
+          <Text style={[styles.countryPercentage, { color: colors.primary }]}>{formatPercentage(item.percentage)}</Text>
         </View>
       </TouchableOpacity>
     );
@@ -193,9 +199,9 @@ export default function GeoDistributionScreen() {
    */
   if (loading && !data) {
     return (
-      <View style={styles.centerContainer}>
-        <ActivityIndicator size="large" color="#f6821f" />
-        <Text style={styles.loadingText}>Loading geographic distribution...</Text>
+      <View style={[styles.centerContainer, { backgroundColor: colors.background }]}>
+        <ActivityIndicator size="large" color={colors.primary} />
+        <Text style={[styles.loadingText, { color: colors.textSecondary }]}>Loading geographic distribution...</Text>
       </View>
     );
   }
@@ -205,10 +211,10 @@ export default function GeoDistributionScreen() {
    */
   if (error && !data) {
     return (
-      <View style={styles.centerContainer}>
-        <Text style={styles.errorTitle}>Unable to Load Data</Text>
-        <Text style={styles.errorMessage}>{error}</Text>
-        <TouchableOpacity style={styles.retryButton} onPress={handleRefresh}>
+      <View style={[styles.centerContainer, { backgroundColor: colors.background }]}>
+        <Text style={[styles.errorTitle, { color: colors.error }]}>Unable to Load Data</Text>
+        <Text style={[styles.errorMessage, { color: colors.textSecondary }]}>{error}</Text>
+        <TouchableOpacity style={[styles.retryButton, { backgroundColor: colors.primary }]} onPress={handleRefresh}>
           <Text style={styles.retryButtonText}>Retry</Text>
         </TouchableOpacity>
       </View>
@@ -220,7 +226,7 @@ export default function GeoDistributionScreen() {
   const totalRequests = data?.countries?.reduce((sum, c) => sum + c.requests, 0) || 0;
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.contentContainer}
@@ -228,47 +234,47 @@ export default function GeoDistributionScreen() {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={handleRefresh}
-            colors={['#f6821f']}
-            tintColor="#f6821f"
+            colors={[colors.primary]}
+            tintColor={colors.primary}
           />
         }
       >
         {/* Header */}
         <View style={styles.header}>
-          <Text style={styles.title}>Geographic Distribution</Text>
+          <Text style={[styles.title, { color: colors.text }]}>Geographic Distribution</Text>
           {lastRefreshTime && (
-            <Text style={styles.lastUpdate}>
+            <Text style={[styles.lastUpdate, { color: colors.textSecondary }]}>
               Last updated: {lastRefreshTime.toLocaleTimeString()}
             </Text>
           )}
           {isFromCache && (
-            <Text style={styles.cacheIndicator}>📦 Showing cached data</Text>
+            <Text style={[styles.cacheIndicator, { color: colors.primary }]}>📦 Showing cached data</Text>
           )}
         </View>
 
         {/* Time Range Selector */}
-        <View style={styles.timeRangeSelector}>
+        <View style={[styles.timeRangeSelector, { backgroundColor: colors.surface }]}>
           <TouchableOpacity
-            style={[styles.timeRangeButton, timeRange === '24h' && styles.timeRangeButtonActive]}
+            style={[styles.timeRangeButton, timeRange === '24h' && { backgroundColor: colors.primary }]}
             onPress={() => setTimeRange('24h')}
           >
-            <Text style={[styles.timeRangeButtonText, timeRange === '24h' && styles.timeRangeButtonTextActive]}>
+            <Text style={[styles.timeRangeButtonText, { color: timeRange === '24h' ? '#fff' : colors.textSecondary }]}>
               24H
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
-            style={[styles.timeRangeButton, timeRange === '7d' && styles.timeRangeButtonActive]}
+            style={[styles.timeRangeButton, timeRange === '7d' && { backgroundColor: colors.primary }]}
             onPress={() => setTimeRange('7d')}
           >
-            <Text style={[styles.timeRangeButtonText, timeRange === '7d' && styles.timeRangeButtonTextActive]}>
+            <Text style={[styles.timeRangeButtonText, { color: timeRange === '7d' ? '#fff' : colors.textSecondary }]}>
               7D
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
-            style={[styles.timeRangeButton, timeRange === '30d' && styles.timeRangeButtonActive]}
+            style={[styles.timeRangeButton, timeRange === '30d' && { backgroundColor: colors.primary }]}
             onPress={() => setTimeRange('30d')}
           >
-            <Text style={[styles.timeRangeButtonText, timeRange === '30d' && styles.timeRangeButtonTextActive]}>
+            <Text style={[styles.timeRangeButtonText, { color: timeRange === '30d' ? '#fff' : colors.textSecondary }]}>
               30D
             </Text>
           </TouchableOpacity>
@@ -276,40 +282,40 @@ export default function GeoDistributionScreen() {
 
         {/* Error banner if partial data */}
         {error && data && (
-          <View style={styles.errorBanner}>
-            <Text style={styles.errorBannerText}>⚠️ {error}</Text>
+          <View style={[styles.errorBanner, { backgroundColor: colors.warning + '20', borderLeftColor: colors.warning }]}>
+            <Text style={[styles.errorBannerText, { color: colors.text }]}>⚠️ {error}</Text>
           </View>
         )}
 
         {/* Summary Cards */}
         {data && (
           <View style={styles.summarySection}>
-            <View style={styles.summaryCard}>
-              <Text style={styles.summaryLabel}>Total Countries</Text>
-              <Text style={styles.summaryValue}>{totalCountries}</Text>
+            <View style={[styles.summaryCard, { backgroundColor: colors.surface }]}>
+              <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>Total Countries</Text>
+              <Text style={[styles.summaryValue, { color: colors.text }]}>{totalCountries}</Text>
             </View>
-            <View style={styles.summaryCard}>
-              <Text style={styles.summaryLabel}>Total Requests</Text>
-              <Text style={styles.summaryValue}>{formatNumber(totalRequests)}</Text>
+            <View style={[styles.summaryCard, { backgroundColor: colors.surface }]}>
+              <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>Total Requests</Text>
+              <Text style={[styles.summaryValue, { color: colors.text }]}>{formatNumber(totalRequests)}</Text>
             </View>
           </View>
         )}
 
         {/* Toggle Button */}
-        <View style={styles.toggleSection}>
+        <View style={[styles.toggleSection, { backgroundColor: colors.surface }]}>
           <TouchableOpacity
-            style={[styles.toggleButton, showTopOnly && styles.toggleButtonActive]}
+            style={[styles.toggleButton, showTopOnly && { backgroundColor: colors.primary }]}
             onPress={() => setShowTopOnly(true)}
           >
-            <Text style={[styles.toggleButtonText, showTopOnly && styles.toggleButtonTextActive]}>
+            <Text style={[styles.toggleButtonText, { color: showTopOnly ? '#fff' : colors.textSecondary }]}>
               Top 10
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
-            style={[styles.toggleButton, !showTopOnly && styles.toggleButtonActive]}
+            style={[styles.toggleButton, !showTopOnly && { backgroundColor: colors.primary }]}
             onPress={() => setShowTopOnly(false)}
           >
-            <Text style={[styles.toggleButtonText, !showTopOnly && styles.toggleButtonTextActive]}>
+            <Text style={[styles.toggleButtonText, { color: !showTopOnly ? '#fff' : colors.textSecondary }]}>
               All Countries
             </Text>
           </TouchableOpacity>
@@ -317,7 +323,7 @@ export default function GeoDistributionScreen() {
 
         {/* Country List */}
         {displayCountries.length > 0 ? (
-          <View style={styles.listSection}>
+          <View style={[styles.listSection, { backgroundColor: colors.surface }]}>
             <FlatList
               data={displayCountries}
               renderItem={renderCountryItem}
@@ -326,14 +332,14 @@ export default function GeoDistributionScreen() {
             />
           </View>
         ) : (
-          <View style={styles.emptyState}>
-            <Text style={styles.emptyStateText}>No geographic data available</Text>
+          <View style={[styles.emptyState, { backgroundColor: colors.surface }]}>
+            <Text style={[styles.emptyStateText, { color: colors.textDisabled }]}>No geographic data available</Text>
           </View>
         )}
 
         {/* Info Section */}
-        <View style={styles.infoSection}>
-          <Text style={styles.infoText}>
+        <View style={[styles.infoSection, { backgroundColor: colors.surface }]}>
+          <Text style={[styles.infoText, { color: colors.textSecondary }]}>
             Tap on a country to view detailed statistics.
             Pull down to refresh data.
           </Text>
@@ -349,40 +355,40 @@ export default function GeoDistributionScreen() {
           onRequestClose={closeDetailModal}
         >
           <View style={styles.modalOverlay}>
-            <View style={styles.modalContent}>
+            <View style={[styles.modalContent, { backgroundColor: colors.surface }]}>
               <View style={styles.modalHeader}>
                 <Text style={styles.modalFlag}>{getCountryFlag(selectedCountry.code)}</Text>
                 <View style={styles.modalHeaderText}>
-                  <Text style={styles.modalTitle}>{selectedCountry.name}</Text>
-                  <Text style={styles.modalSubtitle}>{selectedCountry.code}</Text>
+                  <Text style={[styles.modalTitle, { color: colors.text }]}>{selectedCountry.name}</Text>
+                  <Text style={[styles.modalSubtitle, { color: colors.textSecondary }]}>{selectedCountry.code}</Text>
                 </View>
                 <TouchableOpacity onPress={closeDetailModal} style={styles.modalCloseButton}>
-                  <Text style={styles.modalCloseText}>✕</Text>
+                  <Text style={[styles.modalCloseText, { color: colors.textDisabled }]}>✕</Text>
                 </TouchableOpacity>
               </View>
 
               <View style={styles.modalBody}>
-                <View style={styles.modalStatRow}>
-                  <Text style={styles.modalStatLabel}>Requests</Text>
-                  <Text style={styles.modalStatValue}>{formatNumber(selectedCountry.requests)}</Text>
+                <View style={[styles.modalStatRow, { borderBottomColor: colors.border }]}>
+                  <Text style={[styles.modalStatLabel, { color: colors.textSecondary }]}>Requests</Text>
+                  <Text style={[styles.modalStatValue, { color: colors.text }]}>{formatNumber(selectedCountry.requests)}</Text>
                 </View>
-                <View style={styles.modalStatRow}>
-                  <Text style={styles.modalStatLabel}>Data Transferred</Text>
-                  <Text style={styles.modalStatValue}>{formatBytes(selectedCountry.bytes)}</Text>
+                <View style={[styles.modalStatRow, { borderBottomColor: colors.border }]}>
+                  <Text style={[styles.modalStatLabel, { color: colors.textSecondary }]}>Data Transferred</Text>
+                  <Text style={[styles.modalStatValue, { color: colors.text }]}>{formatBytes(selectedCountry.bytes)}</Text>
                 </View>
-                <View style={styles.modalStatRow}>
-                  <Text style={styles.modalStatLabel}>Percentage of Total</Text>
-                  <Text style={styles.modalStatValue}>{formatPercentage(selectedCountry.percentage)}</Text>
+                <View style={[styles.modalStatRow, { borderBottomColor: colors.border }]}>
+                  <Text style={[styles.modalStatLabel, { color: colors.textSecondary }]}>Percentage of Total</Text>
+                  <Text style={[styles.modalStatValue, { color: colors.text }]}>{formatPercentage(selectedCountry.percentage)}</Text>
                 </View>
-                <View style={styles.modalStatRow}>
-                  <Text style={styles.modalStatLabel}>Avg. Bytes per Request</Text>
-                  <Text style={styles.modalStatValue}>
+                <View style={[styles.modalStatRow, { borderBottomColor: colors.border }]}>
+                  <Text style={[styles.modalStatLabel, { color: colors.textSecondary }]}>Avg. Bytes per Request</Text>
+                  <Text style={[styles.modalStatValue, { color: colors.text }]}>
                     {formatBytes(selectedCountry.requests > 0 ? selectedCountry.bytes / selectedCountry.requests : 0)}
                   </Text>
                 </View>
               </View>
 
-              <TouchableOpacity style={styles.modalButton} onPress={closeDetailModal}>
+              <TouchableOpacity style={[styles.modalButton, { backgroundColor: colors.primary }]} onPress={closeDetailModal}>
                 <Text style={styles.modalButtonText}>Close</Text>
               </TouchableOpacity>
             </View>
@@ -396,7 +402,6 @@ export default function GeoDistributionScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
   },
   scrollView: {
     flex: 1,
@@ -409,14 +414,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
-    backgroundColor: '#f5f5f5',
   },
   header: {
     marginBottom: 16,
   },
   timeRangeSelector: {
     flexDirection: 'row',
-    backgroundColor: '#fff',
     borderRadius: 8,
     padding: 4,
     marginBottom: 20,
@@ -432,64 +435,47 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderRadius: 6,
   },
-  timeRangeButtonActive: {
-    backgroundColor: '#f6821f',
-  },
   timeRangeButtonText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#666',
-  },
-  timeRangeButtonTextActive: {
-    color: '#fff',
   },
   title: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#333',
     marginBottom: 4,
   },
   lastUpdate: {
     fontSize: 14,
-    color: '#666',
     marginTop: 4,
   },
   cacheIndicator: {
     fontSize: 13,
-    color: '#f6821f',
     marginTop: 4,
   },
   loadingText: {
     marginTop: 12,
     fontSize: 16,
-    color: '#666',
   },
   errorTitle: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#e74c3c',
     marginBottom: 8,
   },
   errorMessage: {
     fontSize: 16,
-    color: '#666',
     textAlign: 'center',
     marginBottom: 20,
   },
   errorBanner: {
-    backgroundColor: '#fff3cd',
     borderRadius: 8,
     padding: 12,
     marginBottom: 16,
     borderLeftWidth: 4,
-    borderLeftColor: '#f6821f',
   },
   errorBannerText: {
     fontSize: 14,
-    color: '#856404',
   },
   retryButton: {
-    backgroundColor: '#f6821f',
     paddingHorizontal: 24,
     paddingVertical: 12,
     borderRadius: 8,
@@ -506,7 +492,6 @@ const styles = StyleSheet.create({
   },
   summaryCard: {
     flex: 1,
-    backgroundColor: '#fff',
     borderRadius: 12,
     padding: 16,
     alignItems: 'center',
@@ -518,18 +503,15 @@ const styles = StyleSheet.create({
   },
   summaryLabel: {
     fontSize: 14,
-    color: '#666',
     marginBottom: 8,
   },
   summaryValue: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#333',
   },
   toggleSection: {
     flexDirection: 'row',
     marginBottom: 16,
-    backgroundColor: '#fff',
     borderRadius: 8,
     padding: 4,
     shadowColor: '#000',
@@ -544,19 +526,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderRadius: 6,
   },
-  toggleButtonActive: {
-    backgroundColor: '#f6821f',
-  },
   toggleButtonText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#666',
-  },
-  toggleButtonTextActive: {
-    color: '#fff',
   },
   listSection: {
-    backgroundColor: '#fff',
     borderRadius: 12,
     overflow: 'hidden',
     shadowColor: '#000',
@@ -570,10 +544,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
-  },
-  countryItemTopTen: {
-    backgroundColor: '#fffbf5',
   },
   countryFlag: {
     fontSize: 32,
@@ -585,12 +555,10 @@ const styles = StyleSheet.create({
   countryName: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#333',
     marginBottom: 2,
   },
   countryCode: {
     fontSize: 13,
-    color: '#666',
   },
   countryStats: {
     alignItems: 'flex-end',
@@ -598,16 +566,13 @@ const styles = StyleSheet.create({
   countryRequests: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#333',
     marginBottom: 2,
   },
   countryPercentage: {
     fontSize: 13,
-    color: '#f6821f',
     fontWeight: '600',
   },
   emptyState: {
-    backgroundColor: '#fff',
     borderRadius: 12,
     padding: 40,
     alignItems: 'center',
@@ -619,17 +584,14 @@ const styles = StyleSheet.create({
   },
   emptyStateText: {
     fontSize: 16,
-    color: '#999',
   },
   infoSection: {
     marginTop: 20,
     padding: 16,
-    backgroundColor: '#fff',
     borderRadius: 12,
   },
   infoText: {
     fontSize: 14,
-    color: '#666',
     textAlign: 'center',
     lineHeight: 20,
   },
@@ -639,7 +601,6 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   modalContent: {
-    backgroundColor: '#fff',
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     padding: 24,
@@ -660,19 +621,16 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#333',
     marginBottom: 4,
   },
   modalSubtitle: {
     fontSize: 16,
-    color: '#666',
   },
   modalCloseButton: {
     padding: 8,
   },
   modalCloseText: {
     fontSize: 28,
-    color: '#999',
     fontWeight: 'bold',
   },
   modalBody: {
@@ -684,19 +642,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
   },
   modalStatLabel: {
     fontSize: 16,
-    color: '#666',
   },
   modalStatValue: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#333',
   },
   modalButton: {
-    backgroundColor: '#f6821f',
     paddingVertical: 16,
     borderRadius: 12,
     alignItems: 'center',

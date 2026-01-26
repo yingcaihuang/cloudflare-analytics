@@ -3,16 +3,20 @@
  * Provides access to additional features and settings
  */
 
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   ScrollView,
   TouchableOpacity,
+  Switch,
+  Modal,
+  Pressable,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { useTheme } from '../contexts/ThemeContext';
 
 type NavigationProp = NativeStackNavigationProp<any>;
 
@@ -110,6 +114,8 @@ const menuItems: MenuItem[] = [
 
 export default function MoreScreen() {
   const navigation = useNavigation<NavigationProp>();
+  const { colorScheme, colors, isDark, toggleTheme, setColorScheme } = useTheme();
+  const [showThemeModal, setShowThemeModal] = useState(false);
 
   const groupedItems = menuItems.reduce((acc, item) => {
     if (!acc[item.category]) {
@@ -119,38 +125,177 @@ export default function MoreScreen() {
     return acc;
   }, {} as Record<string, MenuItem[]>);
 
+  const getThemeLabel = () => {
+    switch (colorScheme) {
+      case 'light':
+        return '浅色';
+      case 'dark':
+        return '深色';
+      case 'auto':
+        return '跟随系统';
+      default:
+        return '跟随系统';
+    }
+  };
+
   return (
-    <ScrollView style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>更多功能</Text>
-        <Text style={styles.headerSubtitle}>探索更多分析和管理功能</Text>
+    <ScrollView style={[styles.container, { backgroundColor: colors.background }]}>
+      <View style={[styles.header, { backgroundColor: colors.surface, borderBottomColor: colors.border }]}>
+        <Text style={[styles.headerTitle, { color: colors.text }]}>更多功能</Text>
+        <Text style={[styles.headerSubtitle, { color: colors.textSecondary }]}>探索更多分析和管理功能</Text>
+      </View>
+
+      {/* Theme Settings Section */}
+      <View style={styles.section}>
+        <Text style={[styles.sectionTitle, { color: colors.textSecondary, backgroundColor: isDark ? colors.background : '#f9f9f9' }]}>
+          外观设置
+        </Text>
+        
+        {/* Quick Theme Toggle */}
+        <View style={[styles.menuItem, { backgroundColor: colors.surface, borderBottomColor: colors.divider }]}>
+          <View style={[styles.menuItemIcon, { backgroundColor: isDark ? colors.card : '#f0f0f0' }]}>
+            <Text style={styles.iconText}>{isDark ? '🌙' : '☀️'}</Text>
+          </View>
+          <View style={styles.menuItemContent}>
+            <Text style={[styles.menuItemTitle, { color: colors.text }]}>深色模式</Text>
+            <Text style={[styles.menuItemDescription, { color: colors.textSecondary }]}>
+              快速切换深色/浅色主题
+            </Text>
+          </View>
+          <Switch
+            value={isDark}
+            onValueChange={toggleTheme}
+            trackColor={{ false: '#d1d5db', true: colors.primary }}
+            thumbColor="#ffffff"
+          />
+        </View>
+
+        {/* Theme Selector */}
+        <TouchableOpacity
+          style={[styles.menuItem, { backgroundColor: colors.surface, borderBottomColor: colors.divider }]}
+          onPress={() => setShowThemeModal(true)}
+        >
+          <View style={[styles.menuItemIcon, { backgroundColor: isDark ? colors.card : '#f0f0f0' }]}>
+            <Text style={styles.iconText}>🎨</Text>
+          </View>
+          <View style={styles.menuItemContent}>
+            <Text style={[styles.menuItemTitle, { color: colors.text }]}>主题设置</Text>
+            <Text style={[styles.menuItemDescription, { color: colors.textSecondary }]}>
+              当前: {getThemeLabel()}
+            </Text>
+          </View>
+          <Text style={[styles.chevron, { color: colors.border }]}>›</Text>
+        </TouchableOpacity>
       </View>
 
       {Object.entries(groupedItems).map(([category, items]) => (
         <View key={category} style={styles.section}>
-          <Text style={styles.sectionTitle}>{category}</Text>
+          <Text style={[styles.sectionTitle, { color: colors.textSecondary, backgroundColor: isDark ? colors.background : '#f9f9f9' }]}>
+            {category}
+          </Text>
           {items.map((item) => (
             <TouchableOpacity
               key={item.screen}
-              style={styles.menuItem}
+              style={[styles.menuItem, { backgroundColor: colors.surface, borderBottomColor: colors.divider }]}
               onPress={() => navigation.navigate(item.screen)}
             >
-              <View style={styles.menuItemIcon}>
+              <View style={[styles.menuItemIcon, { backgroundColor: isDark ? colors.card : '#f0f0f0' }]}>
                 <Text style={styles.iconText}>{item.icon}</Text>
               </View>
               <View style={styles.menuItemContent}>
-                <Text style={styles.menuItemTitle}>{item.title}</Text>
-                <Text style={styles.menuItemDescription}>{item.description}</Text>
+                <Text style={[styles.menuItemTitle, { color: colors.text }]}>{item.title}</Text>
+                <Text style={[styles.menuItemDescription, { color: colors.textSecondary }]}>{item.description}</Text>
               </View>
-              <Text style={styles.chevron}>›</Text>
+              <Text style={[styles.chevron, { color: colors.border }]}>›</Text>
             </TouchableOpacity>
           ))}
         </View>
       ))}
 
       <View style={styles.footer}>
-        <Text style={styles.footerText}>Cloudflare Analytics v1.0.0</Text>
+        <Text style={[styles.footerText, { color: colors.textDisabled }]}>Cloudflare Analytics v1.0.0</Text>
       </View>
+
+      {/* Theme Selection Modal */}
+      <Modal
+        visible={showThemeModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowThemeModal(false)}
+      >
+        <Pressable 
+          style={styles.modalOverlay}
+          onPress={() => setShowThemeModal(false)}
+        >
+          <View style={[styles.modalContent, { backgroundColor: colors.surface }]}>
+            <Text style={[styles.modalTitle, { color: colors.text }]}>选择主题</Text>
+            
+            <TouchableOpacity
+              style={[styles.themeOption, colorScheme === 'light' && { backgroundColor: colors.primary + '20' }]}
+              onPress={() => {
+                setColorScheme('light');
+                setShowThemeModal(false);
+              }}
+            >
+              <Text style={styles.themeIcon}>☀️</Text>
+              <View style={styles.themeOptionContent}>
+                <Text style={[styles.themeOptionTitle, { color: colors.text }]}>浅色</Text>
+                <Text style={[styles.themeOptionDescription, { color: colors.textSecondary }]}>
+                  始终使用浅色主题
+                </Text>
+              </View>
+              {colorScheme === 'light' && (
+                <Text style={[styles.checkmark, { color: colors.primary }]}>✓</Text>
+              )}
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.themeOption, colorScheme === 'dark' && { backgroundColor: colors.primary + '20' }]}
+              onPress={() => {
+                setColorScheme('dark');
+                setShowThemeModal(false);
+              }}
+            >
+              <Text style={styles.themeIcon}>🌙</Text>
+              <View style={styles.themeOptionContent}>
+                <Text style={[styles.themeOptionTitle, { color: colors.text }]}>深色</Text>
+                <Text style={[styles.themeOptionDescription, { color: colors.textSecondary }]}>
+                  始终使用深色主题
+                </Text>
+              </View>
+              {colorScheme === 'dark' && (
+                <Text style={[styles.checkmark, { color: colors.primary }]}>✓</Text>
+              )}
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.themeOption, colorScheme === 'auto' && { backgroundColor: colors.primary + '20' }]}
+              onPress={() => {
+                setColorScheme('auto');
+                setShowThemeModal(false);
+              }}
+            >
+              <Text style={styles.themeIcon}>🔄</Text>
+              <View style={styles.themeOptionContent}>
+                <Text style={[styles.themeOptionTitle, { color: colors.text }]}>跟随系统</Text>
+                <Text style={[styles.themeOptionDescription, { color: colors.textSecondary }]}>
+                  根据系统设置自动切换
+                </Text>
+              </View>
+              {colorScheme === 'auto' && (
+                <Text style={[styles.checkmark, { color: colors.primary }]}>✓</Text>
+              )}
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.modalButton, { backgroundColor: colors.primary }]}
+              onPress={() => setShowThemeModal(false)}
+            >
+              <Text style={styles.modalButtonText}>完成</Text>
+            </TouchableOpacity>
+          </View>
+        </Pressable>
+      </Modal>
     </ScrollView>
   );
 }
@@ -158,38 +303,29 @@ export default function MoreScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
   },
   header: {
-    backgroundColor: '#fff',
     padding: 20,
     borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
   },
   headerTitle: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#333',
     marginBottom: 5,
   },
   headerSubtitle: {
     fontSize: 14,
-    color: '#666',
   },
   section: {
     marginTop: 20,
-    backgroundColor: '#fff',
     borderTopWidth: 1,
     borderBottomWidth: 1,
-    borderColor: '#e0e0e0',
   },
   sectionTitle: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#666',
     paddingHorizontal: 15,
     paddingVertical: 10,
-    backgroundColor: '#f9f9f9',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
@@ -198,13 +334,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 15,
     borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
   },
   menuItemIcon: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#f0f0f0',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 15,
@@ -218,16 +352,13 @@ const styles = StyleSheet.create({
   menuItemTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#333',
     marginBottom: 3,
   },
   menuItemDescription: {
     fontSize: 13,
-    color: '#666',
   },
   chevron: {
     fontSize: 24,
-    color: '#ccc',
     marginLeft: 10,
   },
   footer: {
@@ -236,6 +367,67 @@ const styles = StyleSheet.create({
   },
   footerText: {
     fontSize: 12,
-    color: '#999',
+  },
+  // Modal styles
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  modalContent: {
+    width: '100%',
+    maxWidth: 400,
+    borderRadius: 16,
+    padding: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 20,
+    textAlign: 'center',
+  },
+  themeOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+    borderRadius: 12,
+    marginBottom: 12,
+  },
+  themeIcon: {
+    fontSize: 28,
+    marginRight: 16,
+  },
+  themeOptionContent: {
+    flex: 1,
+  },
+  themeOptionTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 4,
+  },
+  themeOptionDescription: {
+    fontSize: 13,
+  },
+  checkmark: {
+    fontSize: 24,
+    fontWeight: 'bold',
+  },
+  modalButton: {
+    marginTop: 8,
+    padding: 16,
+    borderRadius: 12,
+    alignItems: 'center',
+  },
+  modalButtonText: {
+    color: '#ffffff',
+    fontSize: 16,
+    fontWeight: '600',
   },
 });

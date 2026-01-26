@@ -13,6 +13,7 @@ import {
   ActivityIndicator,
   TextInput,
 } from 'react-native';
+import { useTheme } from '../contexts/ThemeContext';
 import { useZone } from '../contexts';
 import AuthManager from '../services/AuthManager';
 
@@ -21,6 +22,7 @@ interface AccountZoneSelectionScreenProps {
 }
 
 export default function AccountZoneSelectionScreen({ onComplete }: AccountZoneSelectionScreenProps) {
+  const { colors } = useTheme();
   const { 
     accounts, 
     selectedAccount, 
@@ -264,23 +266,23 @@ export default function AccountZoneSelectionScreen({ onComplete }: AccountZoneSe
   // Only show loading for initial account load, not when switching to zone view
   if (isLoading && step === 'account') {
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#f97316" />
-        <Text style={styles.loadingText}>Loading accounts...</Text>
+      <View style={[styles.loadingContainer, { backgroundColor: colors.background }]}>
+        <ActivityIndicator size="large" color={colors.primary} />
+        <Text style={[styles.loadingText, { color: colors.textSecondary }]}>Loading accounts...</Text>
       </View>
     );
   }
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
       {/* Header */}
-      <View style={styles.header}>
+      <View style={[styles.header, { backgroundColor: colors.surface, borderBottomColor: colors.border }]}>
         <View style={styles.headerContent}>
           <View>
-            <Text style={styles.title}>
+            <Text style={[styles.title, { color: colors.text }]}>
               {step === 'account' ? '选择账户' : '选择Zone'}
             </Text>
-            <Text style={styles.subtitle}>
+            <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
               {step === 'account' 
                 ? `${accounts.length} 个账户${totalZonesCount > 0 ? ` · ${totalZonesCount} 个 Zones` : ''}` 
                 : `${selectedAccount?.name} - ${zones.length} 个zones`}
@@ -288,13 +290,13 @@ export default function AccountZoneSelectionScreen({ onComplete }: AccountZoneSe
           </View>
           {step === 'account' && accountZoneCounts.size > 0 && (
             <TouchableOpacity 
-              style={styles.sortButton}
+              style={[styles.sortButton, { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border }]}
               onPress={handleToggleSort}
             >
-              <Text style={styles.sortButtonText}>
+              <Text style={[styles.sortButtonText, { color: colors.success }]}>
                 {sortOrder === 'desc' ? '↓' : '↑'}
               </Text>
-              <Text style={styles.sortButtonLabel}>排序</Text>
+              <Text style={[styles.sortButtonLabel, { color: colors.textSecondary }]}>排序</Text>
             </TouchableOpacity>
           )}
         </View>
@@ -305,27 +307,41 @@ export default function AccountZoneSelectionScreen({ onComplete }: AccountZoneSe
         <>
           {/* Search Mode Tabs */}
           {accounts.length > 0 && (
-            <View style={styles.tabContainer}>
+            <View style={[styles.tabContainer, { backgroundColor: colors.surface, borderBottomColor: colors.border }]}>
               <TouchableOpacity
-                style={[styles.tab, searchMode === 'account' && styles.tabActive]}
+                style={[
+                  styles.tab,
+                  searchMode === 'account' && { borderBottomColor: colors.success }
+                ]}
                 onPress={() => {
                   setSearchMode('account');
                   setGlobalZoneSearchQuery('');
                   setGlobalZones([]);
                 }}
               >
-                <Text style={[styles.tabText, searchMode === 'account' && styles.tabTextActive]}>
+                <Text style={[
+                  styles.tabText,
+                  { color: colors.textDisabled },
+                  searchMode === 'account' && { color: colors.success, fontWeight: '600' }
+                ]}>
                   搜索账户
                 </Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={[styles.tab, searchMode === 'zone' && styles.tabActive]}
+                style={[
+                  styles.tab,
+                  searchMode === 'zone' && { borderBottomColor: colors.success }
+                ]}
                 onPress={() => {
                   setSearchMode('zone');
                   setAccountSearchQuery('');
                 }}
               >
-                <Text style={[styles.tabText, searchMode === 'zone' && styles.tabTextActive]}>
+                <Text style={[
+                  styles.tabText,
+                  { color: colors.textDisabled },
+                  searchMode === 'zone' && { color: colors.success, fontWeight: '600' }
+                ]}>
                   搜索 Zone
                 </Text>
               </TouchableOpacity>
@@ -334,11 +350,11 @@ export default function AccountZoneSelectionScreen({ onComplete }: AccountZoneSe
 
           {/* Search Bar */}
           {accounts.length > 0 && (
-            <View style={styles.searchContainer}>
+            <View style={[styles.searchContainer, { backgroundColor: colors.surface, borderBottomColor: colors.border }]}>
               <TextInput
-                style={styles.searchInput}
+                style={[styles.searchInput, { backgroundColor: colors.background, color: colors.text }]}
                 placeholder={searchMode === 'account' ? '搜索账户名称或 ID...' : '搜索 Zone 名称或 ID...'}
-                placeholderTextColor="#999"
+                placeholderTextColor={colors.textDisabled}
                 value={searchMode === 'account' ? accountSearchQuery : globalZoneSearchQuery}
                 onChangeText={searchMode === 'account' ? setAccountSearchQuery : handleGlobalZoneSearch}
                 autoCapitalize="none"
@@ -347,7 +363,7 @@ export default function AccountZoneSelectionScreen({ onComplete }: AccountZoneSe
               {((searchMode === 'account' && accountSearchQuery.length > 0) || 
                 (searchMode === 'zone' && globalZoneSearchQuery.length > 0)) && (
                 <TouchableOpacity 
-                  style={styles.clearButton}
+                  style={[styles.clearButton, { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border }]}
                   onPress={() => {
                     if (searchMode === 'account') {
                       setAccountSearchQuery('');
@@ -357,7 +373,7 @@ export default function AccountZoneSelectionScreen({ onComplete }: AccountZoneSe
                     }
                   }}
                 >
-                  <Text style={styles.clearButtonText}>✕</Text>
+                  <Text style={[styles.clearButtonText, { color: colors.textSecondary }]}>✕</Text>
                 </TouchableOpacity>
               )}
             </View>
@@ -368,8 +384,8 @@ export default function AccountZoneSelectionScreen({ onComplete }: AccountZoneSe
             <ScrollView style={styles.listContainer}>
               {getFilteredAccounts().length === 0 ? (
                 <View style={styles.emptyContainer}>
-                  <Text style={styles.emptyText}>没有找到匹配的账户</Text>
-                  <Text style={styles.emptySubtext}>尝试其他搜索关键词</Text>
+                  <Text style={[styles.emptyText, { color: colors.textSecondary }]}>没有找到匹配的账户</Text>
+                  <Text style={[styles.emptySubtext, { color: colors.textDisabled }]}>尝试其他搜索关键词</Text>
                 </View>
               ) : (
                 getFilteredAccounts().map((account) => {
@@ -377,21 +393,21 @@ export default function AccountZoneSelectionScreen({ onComplete }: AccountZoneSe
                   return (
                     <TouchableOpacity
                       key={account.id}
-                      style={styles.listItem}
+                      style={[styles.listItem, { backgroundColor: colors.surface }]}
                       onPress={() => handleAccountSelect(account)}
                     >
                       <View style={styles.listItemContent}>
                         <View style={styles.accountTitleRow}>
-                          <Text style={styles.listItemTitle}>{account.name}</Text>
+                          <Text style={[styles.listItemTitle, { color: colors.text }]}>{account.name}</Text>
                           {zoneCount !== undefined && (
-                            <View style={styles.zoneBadge}>
+                            <View style={[styles.zoneBadge, { backgroundColor: colors.success }]}>
                               <Text style={styles.zoneBadgeText}>{zoneCount}</Text>
                             </View>
                           )}
                         </View>
-                        <Text style={styles.listItemSubtitle}>ID: {account.id}</Text>
+                        <Text style={[styles.listItemSubtitle, { color: colors.textDisabled }]}>ID: {account.id}</Text>
                       </View>
-                      <Text style={styles.arrow}>›</Text>
+                      <Text style={[styles.arrow, { color: colors.textDisabled }]}>›</Text>
                     </TouchableOpacity>
                   );
                 })
@@ -400,38 +416,38 @@ export default function AccountZoneSelectionScreen({ onComplete }: AccountZoneSe
           ) : (
             <ScrollView style={styles.listContainer}>
               {isLoadingGlobalZones ? (
-                <View style={styles.loadingContainer}>
-                  <ActivityIndicator size="large" color="#f97316" />
-                  <Text style={styles.loadingText}>搜索 Zones 中...</Text>
+                <View style={[styles.loadingContainer, { backgroundColor: colors.background }]}>
+                  <ActivityIndicator size="large" color={colors.primary} />
+                  <Text style={[styles.loadingText, { color: colors.textSecondary }]}>搜索 Zones 中...</Text>
                 </View>
               ) : globalZoneSearchQuery.trim().length < 2 ? (
                 <View style={styles.emptyContainer}>
-                  <Text style={styles.emptyText}>请输入至少 2 个字符开始搜索</Text>
-                  <Text style={styles.emptySubtext}>搜索所有账户下的 Zones</Text>
+                  <Text style={[styles.emptyText, { color: colors.textSecondary }]}>请输入至少 2 个字符开始搜索</Text>
+                  <Text style={[styles.emptySubtext, { color: colors.textDisabled }]}>搜索所有账户下的 Zones</Text>
                 </View>
               ) : globalZones.length === 0 ? (
                 <View style={styles.emptyContainer}>
-                  <Text style={styles.emptyText}>没有找到匹配的 Zone</Text>
-                  <Text style={styles.emptySubtext}>尝试其他搜索关键词</Text>
+                  <Text style={[styles.emptyText, { color: colors.textSecondary }]}>没有找到匹配的 Zone</Text>
+                  <Text style={[styles.emptySubtext, { color: colors.textDisabled }]}>尝试其他搜索关键词</Text>
                 </View>
               ) : (
                 globalZones.map((result, index) => (
                   <TouchableOpacity
                     key={`${result.zone.id}-${index}`}
-                    style={styles.listItem}
+                    style={[styles.listItem, { backgroundColor: colors.surface }]}
                     onPress={() => handleGlobalZoneSelect(result)}
                   >
                     <View style={styles.listItemContent}>
-                      <Text style={styles.listItemTitle}>{result.zone.name}</Text>
+                      <Text style={[styles.listItemTitle, { color: colors.text }]}>{result.zone.name}</Text>
                       <View style={styles.zoneInfo}>
-                        <Text style={styles.zoneStatus}>
+                        <Text style={[styles.zoneStatus, { color: colors.success }]}>
                           {result.zone.status === 'active' ? '✓ 活跃' : result.zone.status}
                         </Text>
-                        <Text style={styles.zonePlan}>{result.zone.plan}</Text>
+                        <Text style={[styles.zonePlan, { color: colors.textSecondary, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border }]}>{result.zone.plan}</Text>
                       </View>
-                      <Text style={styles.accountLabel}>账户: {result.accountName}</Text>
+                      <Text style={[styles.accountLabel, { color: colors.primary }]}>账户: {result.accountName}</Text>
                     </View>
-                    <Text style={styles.arrow}>›</Text>
+                    <Text style={[styles.arrow, { color: colors.textDisabled }]}>›</Text>
                   </TouchableOpacity>
                 ))
               )}
@@ -443,17 +459,17 @@ export default function AccountZoneSelectionScreen({ onComplete }: AccountZoneSe
       {/* Zone Selection */}
       {step === 'zone' && (
         <>
-          <TouchableOpacity style={styles.backButton} onPress={handleBackToAccounts}>
-            <Text style={styles.backButtonText}>‹ 返回账户选择</Text>
+          <TouchableOpacity style={[styles.backButton, { backgroundColor: colors.surface, borderBottomColor: colors.border }]} onPress={handleBackToAccounts}>
+            <Text style={[styles.backButtonText, { color: colors.primary }]}>‹ 返回账户选择</Text>
           </TouchableOpacity>
           
           {/* Zone Search Bar */}
           {!isLoadingZones && zones.length > 0 && (
-            <View style={styles.searchContainer}>
+            <View style={[styles.searchContainer, { backgroundColor: colors.surface, borderBottomColor: colors.border }]}>
               <TextInput
-                style={styles.searchInput}
+                style={[styles.searchInput, { backgroundColor: colors.background, color: colors.text }]}
                 placeholder="搜索 Zone 名称或 ID..."
-                placeholderTextColor="#999"
+                placeholderTextColor={colors.textDisabled}
                 value={zoneSearchQuery}
                 onChangeText={setZoneSearchQuery}
                 autoCapitalize="none"
@@ -461,34 +477,34 @@ export default function AccountZoneSelectionScreen({ onComplete }: AccountZoneSe
               />
               {zoneSearchQuery.length > 0 && (
                 <TouchableOpacity 
-                  style={styles.clearButton}
+                  style={[styles.clearButton, { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border }]}
                   onPress={() => setZoneSearchQuery('')}
                 >
-                  <Text style={styles.clearButtonText}>✕</Text>
+                  <Text style={[styles.clearButtonText, { color: colors.textSecondary }]}>✕</Text>
                 </TouchableOpacity>
               )}
             </View>
           )}
           
           {isLoadingZones ? (
-            <View style={styles.loadingContainer}>
-              <ActivityIndicator size="large" color="#f97316" />
-              <Text style={styles.loadingText}>加载zones中...</Text>
-              <Text style={styles.loadingSubtext}>正在获取 {selectedAccount?.name} 的zones</Text>
+            <View style={[styles.loadingContainer, { backgroundColor: colors.background }]}>
+              <ActivityIndicator size="large" color={colors.primary} />
+              <Text style={[styles.loadingText, { color: colors.textSecondary }]}>加载zones中...</Text>
+              <Text style={[styles.loadingSubtext, { color: colors.textDisabled }]}>正在获取 {selectedAccount?.name} 的zones</Text>
             </View>
           ) : (
             <ScrollView style={styles.listContainer}>
               {zones.length === 0 ? (
                 <View style={styles.emptyContainer}>
-                  <Text style={styles.emptyText}>该账户下没有zones</Text>
-                  <TouchableOpacity style={styles.retryButton} onPress={handleBackToAccounts}>
+                  <Text style={[styles.emptyText, { color: colors.textSecondary }]}>该账户下没有zones</Text>
+                  <TouchableOpacity style={[styles.retryButton, { backgroundColor: colors.primary }]} onPress={handleBackToAccounts}>
                     <Text style={styles.retryButtonText}>选择其他账户</Text>
                   </TouchableOpacity>
                 </View>
               ) : getFilteredZones().length === 0 ? (
                 <View style={styles.emptyContainer}>
-                  <Text style={styles.emptyText}>没有找到匹配的 Zone</Text>
-                  <Text style={styles.emptySubtext}>尝试其他搜索关键词</Text>
+                  <Text style={[styles.emptyText, { color: colors.textSecondary }]}>没有找到匹配的 Zone</Text>
+                  <Text style={[styles.emptySubtext, { color: colors.textDisabled }]}>尝试其他搜索关键词</Text>
                 </View>
               ) : (
                 getFilteredZones().map((zone) => (
@@ -496,20 +512,21 @@ export default function AccountZoneSelectionScreen({ onComplete }: AccountZoneSe
                     key={zone.id}
                     style={[
                       styles.listItem,
-                      zone.id === zoneId && styles.listItemSelected,
+                      { backgroundColor: colors.surface },
+                      zone.id === zoneId && { borderWidth: 2, borderColor: colors.success, backgroundColor: colors.success + '20' },
                     ]}
                     onPress={() => handleZoneSelect(zone.id)}
                   >
                     <View style={styles.listItemContent}>
-                      <Text style={styles.listItemTitle}>{zone.name}</Text>
+                      <Text style={[styles.listItemTitle, { color: colors.text }]}>{zone.name}</Text>
                       <View style={styles.zoneInfo}>
-                        <Text style={styles.zoneStatus}>
+                        <Text style={[styles.zoneStatus, { color: colors.success }]}>
                           {zone.status === 'active' ? '✓ 活跃' : zone.status}
                         </Text>
-                        <Text style={styles.zonePlan}>{zone.plan}</Text>
+                        <Text style={[styles.zonePlan, { color: colors.textSecondary, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border }]}>{zone.plan}</Text>
                       </View>
                     </View>
-                    <Text style={styles.arrow}>›</Text>
+                    <Text style={[styles.arrow, { color: colors.textDisabled }]}>›</Text>
                   </TouchableOpacity>
                 ))
               )}
@@ -522,51 +539,12 @@ export default function AccountZoneSelectionScreen({ onComplete }: AccountZoneSe
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#f5f5f5',
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#f5f5f5',
-  },
-  loadingText: {
-    marginTop: 12,
-    fontSize: 16,
-    color: '#666',
-  },
-  loadingSubtext: {
-    marginTop: 8,
-    fontSize: 14,
-    color: '#999',
-    textAlign: 'center',
-  },
-  header: {
-    backgroundColor: '#fff',
-    padding: 20,
-    paddingTop: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
-  },
   headerContent: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
-  title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#333',
-    marginBottom: 8,
-  },
-  subtitle: {
-    fontSize: 16,
-    color: '#666',
-  },
   sortButton: {
-    backgroundColor: '#f0f0f0',
     borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: 8,
@@ -576,46 +554,32 @@ const styles = StyleSheet.create({
   },
   sortButtonText: {
     fontSize: 20,
-    color: '#22c55e',
     fontWeight: 'bold',
   },
   sortButtonLabel: {
     fontSize: 11,
-    color: '#666',
     marginTop: 2,
   },
   backButton: {
-    backgroundColor: '#fff',
     padding: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
-  },
-  backButtonText: {
-    fontSize: 16,
-    color: '#f97316',
-    fontWeight: '600',
   },
   searchContainer: {
-    backgroundColor: '#fff',
     padding: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
     flexDirection: 'row',
     alignItems: 'center',
   },
   searchInput: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
     borderRadius: 8,
     paddingHorizontal: 16,
     paddingVertical: 10,
     fontSize: 16,
-    color: '#333',
   },
   clearButton: {
     marginLeft: 8,
     padding: 8,
-    backgroundColor: '#f0f0f0',
     borderRadius: 20,
     width: 36,
     height: 36,
@@ -624,14 +588,12 @@ const styles = StyleSheet.create({
   },
   clearButtonText: {
     fontSize: 18,
-    color: '#666',
     fontWeight: 'bold',
   },
   listContainer: {
     flex: 1,
   },
   listItem: {
-    backgroundColor: '#fff',
     padding: 16,
     marginVertical: 4,
     marginHorizontal: 12,
@@ -645,11 +607,6 @@ const styles = StyleSheet.create({
     shadowRadius: 2,
     elevation: 2,
   },
-  listItemSelected: {
-    borderWidth: 2,
-    borderColor: '#22c55e',
-    backgroundColor: '#f0fdf4',
-  },
   listItemContent: {
     flex: 1,
   },
@@ -658,13 +615,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 4,
   },
-  listItemTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#333',
-  },
   zoneBadge: {
-    backgroundColor: '#22c55e',
     borderRadius: 12,
     paddingHorizontal: 8,
     paddingVertical: 2,
@@ -678,10 +629,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: 'bold',
   },
-  listItemSubtitle: {
-    fontSize: 13,
-    color: '#999',
-  },
   zoneInfo: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -689,21 +636,17 @@ const styles = StyleSheet.create({
   },
   zoneStatus: {
     fontSize: 13,
-    color: '#27ae60',
     marginRight: 12,
     fontWeight: '500',
   },
   zonePlan: {
     fontSize: 13,
-    color: '#666',
-    backgroundColor: '#f0f0f0',
     paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: 4,
   },
   arrow: {
     fontSize: 32,
-    color: '#ccc',
     marginLeft: 12,
   },
   emptyContainer: {
@@ -714,17 +657,14 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 16,
-    color: '#666',
     textAlign: 'center',
     marginBottom: 20,
   },
   emptySubtext: {
     fontSize: 14,
-    color: '#999',
     textAlign: 'center',
   },
   retryButton: {
-    backgroundColor: '#f97316',
     paddingHorizontal: 24,
     paddingVertical: 12,
     borderRadius: 8,
@@ -736,9 +676,7 @@ const styles = StyleSheet.create({
   },
   tabContainer: {
     flexDirection: 'row',
-    backgroundColor: '#fff',
     borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
   },
   tab: {
     flex: 1,
@@ -748,21 +686,12 @@ const styles = StyleSheet.create({
     borderBottomWidth: 2,
     borderBottomColor: 'transparent',
   },
-  tabActive: {
-    borderBottomColor: '#22c55e',
-  },
   tabText: {
     fontSize: 16,
-    color: '#999',
     fontWeight: '500',
-  },
-  tabTextActive: {
-    color: '#22c55e',
-    fontWeight: '600',
   },
   accountLabel: {
     fontSize: 12,
-    color: '#f97316',
     marginTop: 4,
     fontWeight: '500',
   },

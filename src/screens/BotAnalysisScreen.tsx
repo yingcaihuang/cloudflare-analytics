@@ -17,8 +17,10 @@ import {
 } from 'react-native';
 import { useBotAnalysis } from '../hooks/useBotAnalysis';
 import { BarChart, ZoneSelector } from '../components';
+import { useTheme } from '../contexts/ThemeContext';
 
 export default function BotAnalysisScreen() {
+  const { colors } = useTheme();
   const [refreshing, setRefreshing] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [timeRange, setTimeRange] = useState<'24h' | '7d' | '30d'>('24h');
@@ -134,9 +136,9 @@ export default function BotAnalysisScreen() {
    */
   if (loading && !data) {
     return (
-      <View style={styles.centerContainer}>
-        <ActivityIndicator size="large" color="#0066cc" />
-        <Text style={styles.loadingText}>Loading bot analysis...</Text>
+      <View style={[styles.centerContainer, { backgroundColor: colors.background }]}>
+        <ActivityIndicator size="large" color={colors.secondary} />
+        <Text style={[styles.loadingText, { color: colors.textSecondary }]}>Loading bot analysis...</Text>
       </View>
     );
   }
@@ -146,9 +148,9 @@ export default function BotAnalysisScreen() {
    */
   if (error && !data) {
     return (
-      <View style={styles.centerContainer}>
-        <Text style={styles.errorText}>Error: {error}</Text>
-        <TouchableOpacity style={styles.retryButton} onPress={handleRefresh}>
+      <View style={[styles.centerContainer, { backgroundColor: colors.background }]}>
+        <Text style={[styles.errorText, { color: colors.error }]}>Error: {error}</Text>
+        <TouchableOpacity style={[styles.retryButton, { backgroundColor: colors.secondary }]} onPress={handleRefresh}>
           <Text style={styles.retryButtonText}>Retry</Text>
         </TouchableOpacity>
       </View>
@@ -160,14 +162,14 @@ export default function BotAnalysisScreen() {
    */
   if (!data) {
     return (
-      <View style={styles.centerContainer}>
-        <Text style={styles.noDataText}>No bot analysis data available</Text>
+      <View style={[styles.centerContainer, { backgroundColor: colors.background }]}>
+        <Text style={[styles.noDataText, { color: colors.textSecondary }]}>No bot analysis data available</Text>
       </View>
     );
   }
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
       <ZoneSelector />
       
       <ScrollView
@@ -177,10 +179,10 @@ export default function BotAnalysisScreen() {
         }
       >
         {/* Header */}
-        <View style={styles.header}>
-          <Text style={styles.title}>Bot Analysis</Text>
+        <View style={[styles.header, { backgroundColor: colors.surface, borderBottomColor: colors.border }]}>
+          <Text style={[styles.title, { color: colors.text }]}>Bot Analysis</Text>
           <TouchableOpacity
-            style={[styles.exportButton, exporting && styles.exportButtonDisabled]}
+            style={[styles.exportButton, { backgroundColor: exporting ? colors.textDisabled : colors.secondary }]}
             onPress={handleExport}
             disabled={exporting}
           >
@@ -192,73 +194,73 @@ export default function BotAnalysisScreen() {
 
         {/* Last refresh time */}
         {lastRefresh && (
-          <Text style={styles.lastRefresh}>
+          <Text style={[styles.lastRefresh, { color: colors.textSecondary, backgroundColor: colors.surface }]}>
             Last updated: {lastRefresh.toLocaleTimeString()}
           </Text>
         )}
 
         {/* Time Range Selector */}
-        <View style={styles.timeRangeSelector}>
+        <View style={[styles.timeRangeSelector, { backgroundColor: colors.surface }]}>
           <TouchableOpacity
-            style={[styles.timeRangeButton, timeRange === '24h' && styles.timeRangeButtonActive]}
+            style={[styles.timeRangeButton, timeRange === '24h' && { backgroundColor: colors.primary }]}
             onPress={() => setTimeRange('24h')}
           >
-            <Text style={[styles.timeRangeButtonText, timeRange === '24h' && styles.timeRangeButtonTextActive]}>
+            <Text style={[styles.timeRangeButtonText, { color: timeRange === '24h' ? '#fff' : colors.textSecondary }]}>
               24H
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
-            style={[styles.timeRangeButton, timeRange === '7d' && styles.timeRangeButtonActive]}
+            style={[styles.timeRangeButton, timeRange === '7d' && { backgroundColor: colors.primary }]}
             onPress={() => setTimeRange('7d')}
           >
-            <Text style={[styles.timeRangeButtonText, timeRange === '7d' && styles.timeRangeButtonTextActive]}>
+            <Text style={[styles.timeRangeButtonText, { color: timeRange === '7d' ? '#fff' : colors.textSecondary }]}>
               7D
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
-            style={[styles.timeRangeButton, timeRange === '30d' && styles.timeRangeButtonActive]}
+            style={[styles.timeRangeButton, timeRange === '30d' && { backgroundColor: colors.primary }]}
             onPress={() => setTimeRange('30d')}
           >
-            <Text style={[styles.timeRangeButtonText, timeRange === '30d' && styles.timeRangeButtonTextActive]}>
+            <Text style={[styles.timeRangeButtonText, { color: timeRange === '30d' ? '#fff' : colors.textSecondary }]}>
               30D
             </Text>
           </TouchableOpacity>
         </View>
 
         {/* Bot Traffic Overview */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Bot Traffic Overview</Text>
+        <View style={[styles.section, { backgroundColor: colors.surface }]}>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>Bot Traffic Overview</Text>
           
           <View style={styles.metricsGrid}>
-            <View style={styles.metricCard}>
-              <Text style={styles.metricLabel}>Total Requests</Text>
-              <Text style={styles.metricValue}>{formatNumber(data.totalRequests)}</Text>
+            <View style={[styles.metricCard, { backgroundColor: colors.background, borderColor: colors.border }]}>
+              <Text style={[styles.metricLabel, { color: colors.textSecondary }]}>Total Requests</Text>
+              <Text style={[styles.metricValue, { color: colors.text }]}>{formatNumber(data.totalRequests)}</Text>
             </View>
 
-            <View style={styles.metricCard}>
-              <Text style={styles.metricLabel}>Bot Requests</Text>
-              <Text style={styles.metricValue}>{formatNumber(data.botRequests)}</Text>
+            <View style={[styles.metricCard, { backgroundColor: colors.background, borderColor: colors.border }]}>
+              <Text style={[styles.metricLabel, { color: colors.textSecondary }]}>Bot Requests</Text>
+              <Text style={[styles.metricValue, { color: colors.text }]}>{formatNumber(data.botRequests)}</Text>
             </View>
 
-            <View style={[styles.metricCard, styles.metricCardWide]}>
-              <Text style={styles.metricLabel}>Bot Traffic Percentage</Text>
+            <View style={[styles.metricCard, styles.metricCardWide, { backgroundColor: colors.background, borderColor: colors.border }]}>
+              <Text style={[styles.metricLabel, { color: colors.textSecondary }]}>Bot Traffic Percentage</Text>
               <Text style={[
                 styles.metricValue,
-                data.botPercentage > 50 && styles.metricValueWarning,
+                { color: data.botPercentage > 50 ? colors.primary : colors.text },
               ]}>
                 {data.botPercentage.toFixed(2)}%
               </Text>
               {data.botPercentage > 50 && (
-                <Text style={styles.warningText}>High bot traffic detected</Text>
+                <Text style={[styles.warningText, { color: colors.primary }]}>High bot traffic detected</Text>
               )}
             </View>
           </View>
         </View>
 
         {/* Bot Score Distribution */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Bot Score Distribution</Text>
-          <Text style={styles.sectionDescription}>
+        <View style={[styles.section, { backgroundColor: colors.surface }]}>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>Bot Score Distribution</Text>
+          <Text style={[styles.sectionDescription, { color: colors.textSecondary }]}>
             Bot scores range from 0-100, where higher scores indicate more likely bot traffic
           </Text>
 
@@ -276,26 +278,26 @@ export default function BotAnalysisScreen() {
           </View>
 
           {/* Distribution Table */}
-          <View style={styles.table}>
-            <View style={styles.tableHeader}>
-              <Text style={[styles.tableHeaderText, styles.tableCol1]}>Score Range</Text>
-              <Text style={[styles.tableHeaderText, styles.tableCol2]}>Count</Text>
-              <Text style={[styles.tableHeaderText, styles.tableCol3]}>Percentage</Text>
+          <View style={[styles.table, { borderColor: colors.border }]}>
+            <View style={[styles.tableHeader, { backgroundColor: colors.border }]}>
+              <Text style={[styles.tableHeaderText, styles.tableCol1, { color: colors.text }]}>Score Range</Text>
+              <Text style={[styles.tableHeaderText, styles.tableCol2, { color: colors.text }]}>Count</Text>
+              <Text style={[styles.tableHeaderText, styles.tableCol3, { color: colors.text }]}>Percentage</Text>
             </View>
             {data.scoreDistribution.map((item, index) => (
-              <View key={index} style={styles.tableRow}>
-                <Text style={[styles.tableCell, styles.tableCol1]}>{item.range}</Text>
-                <Text style={[styles.tableCell, styles.tableCol2]}>{formatNumber(item.count)}</Text>
-                <Text style={[styles.tableCell, styles.tableCol3]}>{item.percentage.toFixed(2)}%</Text>
+              <View key={index} style={[styles.tableRow, { borderTopColor: colors.border }]}>
+                <Text style={[styles.tableCell, styles.tableCol1, { color: colors.textSecondary }]}>{item.range}</Text>
+                <Text style={[styles.tableCell, styles.tableCol2, { color: colors.textSecondary }]}>{formatNumber(item.count)}</Text>
+                <Text style={[styles.tableCell, styles.tableCol3, { color: colors.textSecondary }]}>{item.percentage.toFixed(2)}%</Text>
               </View>
             ))}
           </View>
         </View>
 
         {/* Info Section */}
-        <View style={styles.infoSection}>
-          <Text style={styles.infoTitle}>Understanding Bot Scores</Text>
-          <Text style={styles.infoText}>
+        <View style={[styles.infoSection, { backgroundColor: colors.info + '20' }]}>
+          <Text style={[styles.infoTitle, { color: colors.secondary }]}>Understanding Bot Scores</Text>
+          <Text style={[styles.infoText, { color: colors.text }]}>
             • 0-20: Very likely human traffic{'\n'}
             • 21-40: Probably human traffic{'\n'}
             • 41-60: Uncertain (could be human or bot){'\n'}
@@ -311,7 +313,6 @@ export default function BotAnalysisScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
   },
   scrollView: {
     flex: 1,
@@ -327,23 +328,16 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     padding: 16,
-    backgroundColor: '#ffffff',
     borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
   },
   title: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#333',
   },
   exportButton: {
-    backgroundColor: '#0066cc',
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 8,
-  },
-  exportButtonDisabled: {
-    backgroundColor: '#cccccc',
   },
   exportButtonText: {
     color: '#ffffff',
@@ -352,14 +346,11 @@ const styles = StyleSheet.create({
   },
   lastRefresh: {
     fontSize: 12,
-    color: '#666',
     textAlign: 'center',
     paddingVertical: 8,
-    backgroundColor: '#ffffff',
   },
   timeRangeSelector: {
     flexDirection: 'row',
-    backgroundColor: '#fff',
     borderRadius: 8,
     padding: 4,
     margin: 16,
@@ -375,19 +366,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderRadius: 6,
   },
-  timeRangeButtonActive: {
-    backgroundColor: '#f6821f',
-  },
   timeRangeButtonText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#666',
-  },
-  timeRangeButtonTextActive: {
-    color: '#fff',
   },
   section: {
-    backgroundColor: '#ffffff',
     marginTop: 16,
     padding: 16,
     borderRadius: 8,
@@ -396,12 +379,10 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#333',
     marginBottom: 8,
   },
   sectionDescription: {
     fontSize: 14,
-    color: '#666',
     marginBottom: 16,
   },
   metricsGrid: {
@@ -413,31 +394,23 @@ const styles = StyleSheet.create({
   metricCard: {
     flex: 1,
     minWidth: '45%',
-    backgroundColor: '#f9f9f9',
     padding: 16,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#e0e0e0',
   },
   metricCardWide: {
     minWidth: '100%',
   },
   metricLabel: {
     fontSize: 14,
-    color: '#666',
     marginBottom: 8,
   },
   metricValue: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#333',
-  },
-  metricValueWarning: {
-    color: '#ff6b00',
   },
   warningText: {
     fontSize: 12,
-    color: '#ff6b00',
     marginTop: 4,
     fontWeight: '600',
   },
@@ -451,31 +424,26 @@ const styles = StyleSheet.create({
   table: {
     marginTop: 16,
     borderWidth: 1,
-    borderColor: '#e0e0e0',
     borderRadius: 8,
     overflow: 'hidden',
   },
   tableHeader: {
     flexDirection: 'row',
-    backgroundColor: '#f0f0f0',
     paddingVertical: 12,
     paddingHorizontal: 8,
   },
   tableHeaderText: {
     fontSize: 14,
     fontWeight: 'bold',
-    color: '#333',
   },
   tableRow: {
     flexDirection: 'row',
     paddingVertical: 12,
     paddingHorizontal: 8,
     borderTopWidth: 1,
-    borderTopColor: '#e0e0e0',
   },
   tableCell: {
     fontSize: 14,
-    color: '#666',
   },
   tableCol1: {
     flex: 2,
@@ -489,7 +457,6 @@ const styles = StyleSheet.create({
     textAlign: 'right',
   },
   infoSection: {
-    backgroundColor: '#e3f2fd',
     marginTop: 16,
     marginHorizontal: 16,
     marginBottom: 24,
@@ -499,32 +466,26 @@ const styles = StyleSheet.create({
   infoTitle: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#0066cc',
     marginBottom: 8,
   },
   infoText: {
     fontSize: 14,
-    color: '#333',
     lineHeight: 22,
   },
   loadingText: {
     marginTop: 12,
     fontSize: 16,
-    color: '#666',
   },
   errorText: {
     fontSize: 16,
-    color: '#d32f2f',
     textAlign: 'center',
     marginBottom: 16,
   },
   noDataText: {
     fontSize: 16,
-    color: '#666',
     textAlign: 'center',
   },
   retryButton: {
-    backgroundColor: '#0066cc',
     paddingHorizontal: 24,
     paddingVertical: 12,
     borderRadius: 8,

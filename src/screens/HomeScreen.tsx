@@ -10,10 +10,9 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  ActivityIndicator,
   RefreshControl,
 } from 'react-native';
-import { useZone } from '../contexts';
+import { useZone, useTheme } from '../contexts';
 import AuthManager from '../services/AuthManager';
 
 interface HomeScreenProps {
@@ -21,7 +20,8 @@ interface HomeScreenProps {
 }
 
 export default function HomeScreen({ navigation }: HomeScreenProps) {
-  const { accounts, totalZonesCount, zoneName, isLoading, refreshAccounts } = useZone();
+  const { accounts, totalZonesCount, zoneName, refreshAccounts } = useZone();
+  const { colors } = useTheme();
   const [tokenCount, setTokenCount] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
 
@@ -70,62 +70,62 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
 
   return (
     <ScrollView
-      style={styles.container}
+      style={[styles.container, { backgroundColor: colors.background }]}
       refreshControl={
         <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
       }
     >
       {/* Header */}
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Cloudflare Analytics</Text>
-        <Text style={styles.headerSubtitle}>实时监控您的网站性能</Text>
+      <View style={[styles.header, { backgroundColor: colors.surface }]}>
+        <Text style={[styles.headerTitle, { color: colors.text }]}>Cloudflare Analytics</Text>
+        <Text style={[styles.headerSubtitle, { color: colors.textSecondary }]}>实时监控您的网站性能</Text>
       </View>
 
       {/* Statistics Cards */}
       <View style={styles.statsContainer}>
         {/* Token Card */}
         <TouchableOpacity
-          style={[styles.statCard, styles.tokenCard]}
+          style={[styles.statCard, styles.tokenCard, { backgroundColor: colors.surface }]}
           onPress={handleManageTokens}
         >
-          <View style={styles.statIconContainer}>
+          <View style={[styles.statIconContainer, { backgroundColor: colors.card }]}>
             <Text style={styles.statIcon}>🔑</Text>
           </View>
           <View style={styles.statContent}>
-            <Text style={styles.statValue}>{tokenCount}</Text>
-            <Text style={styles.statLabel}>API Tokens</Text>
+            <Text style={[styles.statValue, { color: colors.text }]}>{tokenCount}</Text>
+            <Text style={[styles.statLabel, { color: colors.textSecondary }]}>API Tokens</Text>
           </View>
-          <Text style={styles.statArrow}>›</Text>
+          <Text style={[styles.statArrow, { color: colors.border }]}>›</Text>
         </TouchableOpacity>
 
         {/* Accounts Card */}
         <TouchableOpacity
-          style={[styles.statCard, styles.accountCard]}
+          style={[styles.statCard, styles.accountCard, { backgroundColor: colors.surface }]}
           onPress={handleSelectZone}
         >
-          <View style={styles.statIconContainer}>
+          <View style={[styles.statIconContainer, { backgroundColor: colors.card }]}>
             <Text style={styles.statIcon}>👤</Text>
           </View>
           <View style={styles.statContent}>
-            <Text style={styles.statValue}>{accounts.length}</Text>
-            <Text style={styles.statLabel}>账户</Text>
+            <Text style={[styles.statValue, { color: colors.text }]}>{accounts.length}</Text>
+            <Text style={[styles.statLabel, { color: colors.textSecondary }]}>账户</Text>
           </View>
-          <Text style={styles.statArrow}>›</Text>
+          <Text style={[styles.statArrow, { color: colors.border }]}>›</Text>
         </TouchableOpacity>
 
         {/* Zones Card */}
         <TouchableOpacity
-          style={[styles.statCard, styles.zoneCard]}
+          style={[styles.statCard, styles.zoneCard, { backgroundColor: colors.surface }]}
           onPress={handleSelectZone}
         >
-          <View style={styles.statIconContainer}>
+          <View style={[styles.statIconContainer, { backgroundColor: colors.card }]}>
             <Text style={styles.statIcon}>🌐</Text>
           </View>
           <View style={styles.statContent}>
-            <Text style={styles.statValue}>{totalZonesCount}</Text>
-            <Text style={styles.statLabel}>Zones</Text>
+            <Text style={[styles.statValue, { color: colors.text }]}>{totalZonesCount}</Text>
+            <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Zones</Text>
           </View>
-          <Text style={styles.statArrow}>›</Text>
+          <Text style={[styles.statArrow, { color: colors.border }]}>›</Text>
         </TouchableOpacity>
       </View>
 
@@ -133,9 +133,9 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
       {zoneName && (
         <View style={styles.currentZoneContainer}>
           <View style={styles.currentZoneHeader}>
-            <Text style={styles.currentZoneTitle}>当前选择的 Zone</Text>
+            <Text style={[styles.currentZoneTitle, { color: colors.text }]}>当前选择的 Zone</Text>
             <TouchableOpacity onPress={handleSelectZone}>
-              <Text style={styles.changeZoneButton}>切换</Text>
+              <Text style={[styles.changeZoneButton, { color: colors.primary }]}>切换</Text>
             </TouchableOpacity>
           </View>
           <View style={styles.currentZoneCard}>
@@ -147,89 +147,89 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
 
       {/* Quick Actions */}
       <View style={styles.actionsContainer}>
-        <Text style={styles.sectionTitle}>快速操作</Text>
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>快速操作</Text>
 
         <TouchableOpacity
-          style={styles.actionCard}
+          style={[styles.actionCard, { backgroundColor: colors.surface }]}
           onPress={handleViewDashboard}
           disabled={!zoneName}
         >
-          <View style={styles.actionIconContainer}>
+          <View style={[styles.actionIconContainer, { backgroundColor: colors.card }]}>
             <Text style={styles.actionIcon}>📊</Text>
           </View>
           <View style={styles.actionContent}>
-            <Text style={[styles.actionTitle, !zoneName && styles.actionDisabled]}>
+            <Text style={[styles.actionTitle, { color: colors.text }, !zoneName && styles.actionDisabled]}>
               流量分析
             </Text>
-            <Text style={[styles.actionDescription, !zoneName && styles.actionDisabled]}>
+            <Text style={[styles.actionDescription, { color: colors.textSecondary }, !zoneName && styles.actionDisabled]}>
               查看实时流量数据和趋势
             </Text>
           </View>
-          <Text style={[styles.actionArrow, !zoneName && styles.actionDisabled]}>›</Text>
+          <Text style={[styles.actionArrow, { color: colors.border }, !zoneName && styles.actionDisabled]}>›</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={styles.actionCard}
+          style={[styles.actionCard, { backgroundColor: colors.surface }]}
           onPress={handleViewSecurity}
           disabled={!zoneName}
         >
-          <View style={styles.actionIconContainer}>
+          <View style={[styles.actionIconContainer, { backgroundColor: colors.card }]}>
             <Text style={styles.actionIcon}>🛡️</Text>
           </View>
           <View style={styles.actionContent}>
-            <Text style={[styles.actionTitle, !zoneName && styles.actionDisabled]}>
+            <Text style={[styles.actionTitle, { color: colors.text }, !zoneName && styles.actionDisabled]}>
               安全监控
             </Text>
-            <Text style={[styles.actionDescription, !zoneName && styles.actionDisabled]}>
+            <Text style={[styles.actionDescription, { color: colors.textSecondary }, !zoneName && styles.actionDisabled]}>
               查看安全事件和威胁分析
             </Text>
           </View>
-          <Text style={[styles.actionArrow, !zoneName && styles.actionDisabled]}>›</Text>
+          <Text style={[styles.actionArrow, { color: colors.border }, !zoneName && styles.actionDisabled]}>›</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={styles.actionCard}
+          style={[styles.actionCard, { backgroundColor: colors.surface }]}
           onPress={handleSelectZone}
         >
-          <View style={styles.actionIconContainer}>
+          <View style={[styles.actionIconContainer, { backgroundColor: colors.card }]}>
             <Text style={styles.actionIcon}>⚙️</Text>
           </View>
           <View style={styles.actionContent}>
-            <Text style={styles.actionTitle}>选择 Zone</Text>
-            <Text style={styles.actionDescription}>
+            <Text style={[styles.actionTitle, { color: colors.text }]}>选择 Zone</Text>
+            <Text style={[styles.actionDescription, { color: colors.textSecondary }]}>
               切换到其他账户或 Zone
             </Text>
           </View>
-          <Text style={styles.actionArrow}>›</Text>
+          <Text style={[styles.actionArrow, { color: colors.border }]}>›</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={styles.actionCard}
+          style={[styles.actionCard, { backgroundColor: colors.surface }]}
           onPress={handleManageTokens}
         >
-          <View style={styles.actionIconContainer}>
+          <View style={[styles.actionIconContainer, { backgroundColor: colors.card }]}>
             <Text style={styles.actionIcon}>🔐</Text>
           </View>
           <View style={styles.actionContent}>
-            <Text style={styles.actionTitle}>管理 Tokens</Text>
-            <Text style={styles.actionDescription}>
+            <Text style={[styles.actionTitle, { color: colors.text }]}>管理 Tokens</Text>
+            <Text style={[styles.actionDescription, { color: colors.textSecondary }]}>
               添加、编辑或删除 API Tokens
             </Text>
           </View>
-          <Text style={styles.actionArrow}>›</Text>
+          <Text style={[styles.actionArrow, { color: colors.border }]}>›</Text>
         </TouchableOpacity>
       </View>
 
       {/* No Zone Selected Message */}
       {!zoneName && (
-        <View style={styles.noZoneContainer}>
+        <View style={[styles.noZoneContainer, { backgroundColor: colors.surface }]}>
           <Text style={styles.noZoneIcon}>🎯</Text>
-          <Text style={styles.noZoneTitle}>开始使用</Text>
-          <Text style={styles.noZoneDescription}>
+          <Text style={[styles.noZoneTitle, { color: colors.text }]}>开始使用</Text>
+          <Text style={[styles.noZoneDescription, { color: colors.textSecondary }]}>
             请先选择一个 Zone 以查看分析数据
           </Text>
           <TouchableOpacity
-            style={styles.selectZoneButton}
+            style={[styles.selectZoneButton, { backgroundColor: colors.primary }]}
             onPress={handleSelectZone}
           >
             <Text style={styles.selectZoneButtonText}>选择 Zone</Text>
@@ -243,10 +243,8 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
   },
   header: {
-    backgroundColor: '#fff',
     padding: 24,
     paddingTop: 60,
     borderBottomLeftRadius: 24,
@@ -260,19 +258,16 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 32,
     fontWeight: 'bold',
-    color: '#333',
     marginBottom: 8,
   },
   headerSubtitle: {
     fontSize: 16,
-    color: '#666',
   },
   statsContainer: {
     padding: 16,
     gap: 12,
   },
   statCard: {
-    backgroundColor: '#fff',
     borderRadius: 16,
     padding: 20,
     flexDirection: 'row',
@@ -299,7 +294,6 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: '#f5f5f5',
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 16,
@@ -313,17 +307,14 @@ const styles = StyleSheet.create({
   statValue: {
     fontSize: 32,
     fontWeight: 'bold',
-    color: '#333',
     marginBottom: 4,
   },
   statLabel: {
     fontSize: 14,
-    color: '#666',
     fontWeight: '500',
   },
   statArrow: {
     fontSize: 32,
-    color: '#ccc',
     marginLeft: 12,
   },
   currentZoneContainer: {
@@ -339,11 +330,9 @@ const styles = StyleSheet.create({
   currentZoneTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#333',
   },
   changeZoneButton: {
     fontSize: 16,
-    color: '#f97316',
     fontWeight: '600',
   },
   currentZoneCard: {
@@ -373,11 +362,9 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#333',
     marginBottom: 12,
   },
   actionCard: {
-    backgroundColor: '#fff',
     borderRadius: 12,
     padding: 16,
     flexDirection: 'row',
@@ -393,7 +380,6 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: '#f5f5f5',
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 16,
@@ -407,23 +393,19 @@ const styles = StyleSheet.create({
   actionTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#333',
     marginBottom: 4,
   },
   actionDescription: {
     fontSize: 13,
-    color: '#666',
   },
   actionArrow: {
     fontSize: 24,
-    color: '#ccc',
     marginLeft: 12,
   },
   actionDisabled: {
     opacity: 0.4,
   },
   noZoneContainer: {
-    backgroundColor: '#fff',
     margin: 16,
     padding: 32,
     borderRadius: 16,
@@ -441,17 +423,14 @@ const styles = StyleSheet.create({
   noZoneTitle: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#333',
     marginBottom: 8,
   },
   noZoneDescription: {
     fontSize: 16,
-    color: '#666',
     textAlign: 'center',
     marginBottom: 24,
   },
   selectZoneButton: {
-    backgroundColor: '#f97316',
     paddingHorizontal: 32,
     paddingVertical: 14,
     borderRadius: 12,

@@ -20,9 +20,11 @@ import {
   TouchableWithoutFeedback,
   Keyboard,
 } from 'react-native';
+import { useTheme } from '../contexts/ThemeContext';
 import AlertMonitor, { AlertRule } from '../services/AlertMonitor';
 
 export default function AlertConfigScreen() {
+  const { colors } = useTheme();
   const [rules, setRules] = useState<AlertRule[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
@@ -194,19 +196,19 @@ export default function AlertConfigScreen() {
 
   if (isLoading) {
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#f97316" />
-        <Text style={styles.loadingText}>加载中...</Text>
+      <View style={[styles.loadingContainer, { backgroundColor: colors.background }]}>
+        <ActivityIndicator size="large" color={colors.primary} />
+        <Text style={[styles.loadingText, { color: colors.textSecondary }]}>加载中...</Text>
       </View>
     );
   }
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
       {/* Header */}
-      <View style={styles.header}>
-        <Text style={styles.title}>告警配置</Text>
-        <Text style={styles.subtitle}>
+      <View style={[styles.header, { backgroundColor: colors.surface, borderBottomColor: colors.border }]}>
+        <Text style={[styles.title, { color: colors.text }]}>告警配置</Text>
+        <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
           {rules.length === 0 ? '还没有配置告警规则' : `${rules.length} 个告警规则`}
         </Text>
       </View>
@@ -215,41 +217,41 @@ export default function AlertConfigScreen() {
       <ScrollView style={styles.listContainer}>
         {rules.length === 0 ? (
           <View style={styles.emptyContainer}>
-            <Text style={styles.emptyText}>还没有配置告警规则</Text>
-            <Text style={styles.emptySubtext}>点击下方按钮创建第一个规则</Text>
+            <Text style={[styles.emptyText, { color: colors.textSecondary }]}>还没有配置告警规则</Text>
+            <Text style={[styles.emptySubtext, { color: colors.textDisabled }]}>点击下方按钮创建第一个规则</Text>
           </View>
         ) : (
           rules.map((rule) => (
-            <View key={rule.id} style={styles.ruleCard}>
+            <View key={rule.id} style={[styles.ruleCard, { backgroundColor: colors.surface }]}>
               <View style={styles.ruleHeader}>
                 <View style={styles.ruleHeaderLeft}>
-                  <Text style={styles.ruleName}>{rule.name}</Text>
+                  <Text style={[styles.ruleName, { color: colors.text }]}>{rule.name}</Text>
                   {!rule.enabled && (
-                    <View style={styles.disabledBadge}>
-                      <Text style={styles.disabledBadgeText}>已禁用</Text>
+                    <View style={[styles.disabledBadge, { backgroundColor: colors.textDisabled }]}>
+                      <Text style={[styles.disabledBadgeText, { color: colors.textSecondary }]}>已禁用</Text>
                     </View>
                   )}
                 </View>
                 <Switch
                   value={rule.enabled}
                   onValueChange={() => handleToggleRule(rule)}
-                  trackColor={{ false: '#ccc', true: '#f97316' }}
+                  trackColor={{ false: colors.textDisabled, true: colors.primary }}
                   thumbColor="#fff"
                 />
               </View>
 
               <View style={styles.ruleDetails}>
-                <Text style={styles.ruleDetailText}>
+                <Text style={[styles.ruleDetailText, { color: colors.textSecondary }]}>
                   指标: {getMetricLabel(rule.metric)}
                 </Text>
-                <Text style={styles.ruleDetailText}>
+                <Text style={[styles.ruleDetailText, { color: colors.textSecondary }]}>
                   条件: {getConditionLabel(rule.condition)}
                 </Text>
-                <Text style={styles.ruleDetailText}>
+                <Text style={[styles.ruleDetailText, { color: colors.textSecondary }]}>
                   阈值: {rule.value}{rule.condition !== 'threshold' ? '%' : ''}
                 </Text>
                 {rule.condition !== 'threshold' && (
-                  <Text style={styles.ruleDetailText}>
+                  <Text style={[styles.ruleDetailText, { color: colors.textSecondary }]}>
                     时间窗口: {rule.timeWindow} 分钟
                   </Text>
                 )}
@@ -257,16 +259,16 @@ export default function AlertConfigScreen() {
 
               <View style={styles.ruleActions}>
                 <TouchableOpacity
-                  style={styles.editButton}
+                  style={[styles.editButton, { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border }]}
                   onPress={() => openEditModal(rule)}
                 >
-                  <Text style={styles.editButtonText}>编辑</Text>
+                  <Text style={[styles.editButtonText, { color: colors.text }]}>编辑</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
-                  style={styles.deleteButton}
+                  style={[styles.deleteButton, { backgroundColor: colors.error + '20' }]}
                   onPress={() => handleDeleteRule(rule)}
                 >
-                  <Text style={styles.deleteButtonText}>删除</Text>
+                  <Text style={[styles.deleteButtonText, { color: colors.error }]}>删除</Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -275,8 +277,8 @@ export default function AlertConfigScreen() {
       </ScrollView>
 
       {/* Add Rule Button */}
-      <View style={styles.footer}>
-        <TouchableOpacity style={styles.addButton} onPress={openAddModal}>
+      <View style={[styles.footer, { backgroundColor: colors.surface, borderTopColor: colors.border }]}>
+        <TouchableOpacity style={[styles.addButton, { backgroundColor: colors.primary }]} onPress={openAddModal}>
           <Text style={styles.addButtonText}>+ 添加新规则</Text>
         </TouchableOpacity>
       </View>
@@ -298,8 +300,8 @@ export default function AlertConfigScreen() {
           <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
             <View style={styles.modalOverlay}>
               <TouchableWithoutFeedback onPress={(e) => e.stopPropagation()}>
-                <View style={styles.modalContent}>
-                  <Text style={styles.modalTitle}>
+                <View style={[styles.modalContent, { backgroundColor: colors.surface }]}>
+                  <Text style={[styles.modalTitle, { color: colors.text }]}>
                     {editingRule ? '编辑规则' : '添加新规则'}
                   </Text>
 
@@ -309,30 +311,33 @@ export default function AlertConfigScreen() {
                     style={styles.modalScrollView}
                   >
                     {/* Rule Name */}
-                    <Text style={styles.inputLabel}>规则名称</Text>
+                    <Text style={[styles.inputLabel, { color: colors.text }]}>规则名称</Text>
                     <TextInput
-                      style={styles.input}
+                      style={[styles.input, { borderColor: colors.border, backgroundColor: colors.surface, color: colors.text }]}
                       placeholder="例如: 5xx 错误告警"
+                      placeholderTextColor={colors.textDisabled}
                       value={ruleName}
                       onChangeText={setRuleName}
                       returnKeyType="next"
                     />
 
                     {/* Metric Selection */}
-                    <Text style={styles.inputLabel}>监控指标</Text>
+                    <Text style={[styles.inputLabel, { color: colors.text }]}>监控指标</Text>
                     <View style={styles.optionsContainer}>
                       {['status5xx', 'status4xx', 'status2xx', 'status3xx'].map((m) => (
                         <TouchableOpacity
                           key={m}
                           style={[
                             styles.optionButton,
-                            metric === m && styles.optionButtonActive,
+                            { borderColor: colors.border, backgroundColor: colors.surface },
+                            metric === m && { backgroundColor: colors.primary, borderColor: colors.primary },
                           ]}
                           onPress={() => setMetric(m)}
                         >
                           <Text
                             style={[
                               styles.optionButtonText,
+                              { color: colors.textSecondary },
                               metric === m && styles.optionButtonTextActive,
                             ]}
                           >
@@ -343,20 +348,22 @@ export default function AlertConfigScreen() {
                     </View>
 
                     {/* Condition Selection */}
-                    <Text style={styles.inputLabel}>触发条件</Text>
+                    <Text style={[styles.inputLabel, { color: colors.text }]}>触发条件</Text>
                     <View style={styles.optionsContainer}>
                       {(['increase', 'decrease', 'threshold'] as const).map((c) => (
                         <TouchableOpacity
                           key={c}
                           style={[
                             styles.optionButton,
-                            condition === c && styles.optionButtonActive,
+                            { borderColor: colors.border, backgroundColor: colors.surface },
+                            condition === c && { backgroundColor: colors.primary, borderColor: colors.primary },
                           ]}
                           onPress={() => setCondition(c)}
                         >
                           <Text
                             style={[
                               styles.optionButtonText,
+                              { color: colors.textSecondary },
                               condition === c && styles.optionButtonTextActive,
                             ]}
                           >
@@ -367,12 +374,13 @@ export default function AlertConfigScreen() {
                     </View>
 
                     {/* Value */}
-                    <Text style={styles.inputLabel}>
+                    <Text style={[styles.inputLabel, { color: colors.text }]}>
                       {condition === 'threshold' ? '阈值' : '变化率 (%)'}
                     </Text>
                     <TextInput
-                      style={styles.input}
+                      style={[styles.input, { borderColor: colors.border, backgroundColor: colors.surface, color: colors.text }]}
                       placeholder={condition === 'threshold' ? '例如: 100' : '例如: 50'}
+                      placeholderTextColor={colors.textDisabled}
                       value={value}
                       onChangeText={setValue}
                       keyboardType="numeric"
@@ -382,10 +390,11 @@ export default function AlertConfigScreen() {
                     {/* Time Window (only for increase/decrease) */}
                     {condition !== 'threshold' && (
                       <>
-                        <Text style={styles.inputLabel}>时间窗口 (分钟)</Text>
+                        <Text style={[styles.inputLabel, { color: colors.text }]}>时间窗口 (分钟)</Text>
                         <TextInput
-                          style={styles.input}
+                          style={[styles.input, { borderColor: colors.border, backgroundColor: colors.surface, color: colors.text }]}
                           placeholder="例如: 5"
+                          placeholderTextColor={colors.textDisabled}
                           value={timeWindow}
                           onChangeText={setTimeWindow}
                           keyboardType="numeric"
@@ -396,11 +405,11 @@ export default function AlertConfigScreen() {
 
                     {/* Enabled Switch */}
                     <View style={styles.switchContainer}>
-                      <Text style={styles.inputLabel}>启用规则</Text>
+                      <Text style={[styles.inputLabel, { color: colors.text }]}>启用规则</Text>
                       <Switch
                         value={enabled}
                         onValueChange={setEnabled}
-                        trackColor={{ false: '#ccc', true: '#f97316' }}
+                        trackColor={{ false: colors.textDisabled, true: colors.primary }}
                         thumbColor="#fff"
                       />
                     </View>
@@ -408,18 +417,18 @@ export default function AlertConfigScreen() {
 
                   <View style={styles.modalButtons}>
                     <TouchableOpacity
-                      style={[styles.modalButton, styles.cancelButton]}
+                      style={[styles.modalButton, styles.cancelButton, { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border }]}
                       onPress={() => {
                         Keyboard.dismiss();
                         setShowAddModal(false);
                         resetForm();
                       }}
                     >
-                      <Text style={styles.cancelButtonText}>取消</Text>
+                      <Text style={[styles.cancelButtonText, { color: colors.textSecondary }]}>取消</Text>
                     </TouchableOpacity>
 
                     <TouchableOpacity
-                      style={[styles.modalButton, styles.confirmButton]}
+                      style={[styles.modalButton, styles.confirmButton, { backgroundColor: colors.primary }]}
                       onPress={() => {
                         Keyboard.dismiss();
                         handleSaveRule();
@@ -441,38 +450,6 @@ export default function AlertConfigScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#f5f5f5',
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#f5f5f5',
-  },
-  loadingText: {
-    marginTop: 12,
-    fontSize: 16,
-    color: '#666',
-  },
-  header: {
-    backgroundColor: '#fff',
-    padding: 20,
-    paddingTop: 60,
-    borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#333',
-    marginBottom: 8,
-  },
-  subtitle: {
-    fontSize: 16,
-    color: '#666',
-  },
   listContainer: {
     flex: 1,
     padding: 12,
@@ -484,18 +461,7 @@ const styles = StyleSheet.create({
     padding: 40,
     marginTop: 60,
   },
-  emptyText: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#666',
-    marginBottom: 8,
-  },
-  emptySubtext: {
-    fontSize: 14,
-    color: '#999',
-  },
   ruleCard: {
-    backgroundColor: '#fff',
     borderRadius: 12,
     marginBottom: 12,
     padding: 16,
@@ -516,30 +482,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
   },
-  ruleName: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#333',
-    marginRight: 8,
-  },
   disabledBadge: {
-    backgroundColor: '#ccc',
     paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: 4,
   },
-  disabledBadgeText: {
-    color: '#666',
-    fontSize: 12,
-    fontWeight: '600',
-  },
   ruleDetails: {
     marginBottom: 12,
-  },
-  ruleDetailText: {
-    fontSize: 14,
-    color: '#666',
-    marginBottom: 4,
   },
   ruleActions: {
     flexDirection: 'row',
@@ -547,36 +496,21 @@ const styles = StyleSheet.create({
   },
   editButton: {
     flex: 1,
-    backgroundColor: '#f0f0f0',
     padding: 10,
     borderRadius: 6,
     alignItems: 'center',
-  },
-  editButtonText: {
-    color: '#333',
-    fontSize: 14,
-    fontWeight: '600',
   },
   deleteButton: {
     flex: 1,
-    backgroundColor: '#fee',
     padding: 10,
     borderRadius: 6,
     alignItems: 'center',
   },
-  deleteButtonText: {
-    color: '#e74c3c',
-    fontSize: 14,
-    fontWeight: '600',
-  },
   footer: {
     padding: 16,
-    backgroundColor: '#fff',
     borderTopWidth: 1,
-    borderTopColor: '#e0e0e0',
   },
   addButton: {
-    backgroundColor: '#f97316',
     padding: 16,
     borderRadius: 8,
     alignItems: 'center',
@@ -597,7 +531,6 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   modalContent: {
-    backgroundColor: '#fff',
     borderRadius: 12,
     padding: 24,
     width: '100%',
@@ -606,27 +539,6 @@ const styles = StyleSheet.create({
   },
   modalScrollView: {
     maxHeight: 400,
-  },
-  modalTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#333',
-    marginBottom: 20,
-  },
-  inputLabel: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#333',
-    marginBottom: 8,
-    marginTop: 12,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 8,
-    padding: 12,
-    fontSize: 16,
-    backgroundColor: '#fff',
   },
   optionsContainer: {
     flexDirection: 'row',
@@ -638,21 +550,6 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#ddd',
-    backgroundColor: '#fff',
-  },
-  optionButtonActive: {
-    backgroundColor: '#f97316',
-    borderColor: '#f97316',
-  },
-  optionButtonText: {
-    fontSize: 14,
-    color: '#666',
-    fontWeight: '500',
-  },
-  optionButtonTextActive: {
-    color: '#fff',
-    fontWeight: '600',
   },
   switchContainer: {
     flexDirection: 'row',
@@ -671,16 +568,9 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     alignItems: 'center',
   },
-  cancelButton: {
-    backgroundColor: '#f0f0f0',
-  },
-  cancelButtonText: {
-    color: '#666',
-    fontSize: 16,
+  optionButtonTextActive: {
+    color: '#fff',
     fontWeight: '600',
-  },
-  confirmButton: {
-    backgroundColor: '#f97316',
   },
   confirmButtonText: {
     color: '#fff',

@@ -17,8 +17,10 @@ import {
 } from 'react-native';
 import { useFirewallAnalysis } from '../hooks/useFirewallAnalysis';
 import { ZoneSelector } from '../components';
+import { useTheme } from '../contexts/ThemeContext';
 
 export default function FirewallAnalysisScreen() {
+  const { colors } = useTheme();
   const [refreshing, setRefreshing] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [showAllRules, setShowAllRules] = useState(false);
@@ -134,13 +136,13 @@ export default function FirewallAnalysisScreen() {
   const getActionColor = (action: string): string => {
     const actionLower = action.toLowerCase();
     if (actionLower.includes('block') || actionLower.includes('drop')) {
-      return '#d32f2f';
+      return colors.error;
     } else if (actionLower.includes('challenge')) {
-      return '#ff6b00';
+      return colors.warning;
     } else if (actionLower.includes('allow') || actionLower.includes('log')) {
-      return '#4caf50';
+      return colors.success;
     }
-    return '#666';
+    return colors.textSecondary;
   };
 
   /**
@@ -148,9 +150,9 @@ export default function FirewallAnalysisScreen() {
    */
   if (loading && !data) {
     return (
-      <View style={styles.centerContainer}>
-        <ActivityIndicator size="large" color="#0066cc" />
-        <Text style={styles.loadingText}>Loading firewall analysis...</Text>
+      <View style={[styles.centerContainer, { backgroundColor: colors.background }]}>
+        <ActivityIndicator size="large" color={colors.secondary} />
+        <Text style={[styles.loadingText, { color: colors.textSecondary }]}>Loading firewall analysis...</Text>
       </View>
     );
   }
@@ -160,9 +162,9 @@ export default function FirewallAnalysisScreen() {
    */
   if (error && !data) {
     return (
-      <View style={styles.centerContainer}>
-        <Text style={styles.errorText}>Error: {error}</Text>
-        <TouchableOpacity style={styles.retryButton} onPress={handleRefresh}>
+      <View style={[styles.centerContainer, { backgroundColor: colors.background }]}>
+        <Text style={[styles.errorText, { color: colors.error }]}>Error: {error}</Text>
+        <TouchableOpacity style={[styles.retryButton, { backgroundColor: colors.secondary }]} onPress={handleRefresh}>
           <Text style={styles.retryButtonText}>Retry</Text>
         </TouchableOpacity>
       </View>
@@ -174,8 +176,8 @@ export default function FirewallAnalysisScreen() {
    */
   if (!data) {
     return (
-      <View style={styles.centerContainer}>
-        <Text style={styles.noDataText}>No firewall analysis data available</Text>
+      <View style={[styles.centerContainer, { backgroundColor: colors.background }]}>
+        <Text style={[styles.noDataText, { color: colors.textSecondary }]}>No firewall analysis data available</Text>
       </View>
     );
   }
@@ -184,7 +186,7 @@ export default function FirewallAnalysisScreen() {
   const displayRules = showAllRules ? data.rules : data.topRules;
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
       <ZoneSelector />
       
       <ScrollView
@@ -194,10 +196,10 @@ export default function FirewallAnalysisScreen() {
         }
       >
         {/* Header */}
-        <View style={styles.header}>
-          <Text style={styles.title}>Firewall Analysis</Text>
+        <View style={[styles.header, { backgroundColor: colors.surface, borderBottomColor: colors.border }]}>
+          <Text style={[styles.title, { color: colors.text }]}>Firewall Analysis</Text>
           <TouchableOpacity
-            style={[styles.exportButton, exporting && styles.exportButtonDisabled]}
+            style={[styles.exportButton, { backgroundColor: exporting ? colors.textDisabled : colors.secondary }]}
             onPress={handleExport}
             disabled={exporting}
           >
@@ -209,64 +211,64 @@ export default function FirewallAnalysisScreen() {
 
         {/* Last refresh time */}
         {lastRefresh && (
-          <Text style={styles.lastRefresh}>
+          <Text style={[styles.lastRefresh, { color: colors.textSecondary, backgroundColor: colors.surface }]}>
             Last updated: {lastRefresh.toLocaleTimeString()}
           </Text>
         )}
 
         {/* Time Range Selector */}
-        <View style={styles.timeRangeSelector}>
+        <View style={[styles.timeRangeSelector, { backgroundColor: colors.surface }]}>
           <TouchableOpacity
-            style={[styles.timeRangeButton, timeRange === '24h' && styles.timeRangeButtonActive]}
+            style={[styles.timeRangeButton, timeRange === '24h' && { backgroundColor: colors.primary }]}
             onPress={() => setTimeRange('24h')}
           >
-            <Text style={[styles.timeRangeButtonText, timeRange === '24h' && styles.timeRangeButtonTextActive]}>
+            <Text style={[styles.timeRangeButtonText, { color: timeRange === '24h' ? '#fff' : colors.textSecondary }]}>
               24H
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
-            style={[styles.timeRangeButton, timeRange === '7d' && styles.timeRangeButtonActive]}
+            style={[styles.timeRangeButton, timeRange === '7d' && { backgroundColor: colors.primary }]}
             onPress={() => setTimeRange('7d')}
           >
-            <Text style={[styles.timeRangeButtonText, timeRange === '7d' && styles.timeRangeButtonTextActive]}>
+            <Text style={[styles.timeRangeButtonText, { color: timeRange === '7d' ? '#fff' : colors.textSecondary }]}>
               7D
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
-            style={[styles.timeRangeButton, timeRange === '30d' && styles.timeRangeButtonActive]}
+            style={[styles.timeRangeButton, timeRange === '30d' && { backgroundColor: colors.primary }]}
             onPress={() => setTimeRange('30d')}
           >
-            <Text style={[styles.timeRangeButtonText, timeRange === '30d' && styles.timeRangeButtonTextActive]}>
+            <Text style={[styles.timeRangeButtonText, { color: timeRange === '30d' ? '#fff' : colors.textSecondary }]}>
               30D
             </Text>
           </TouchableOpacity>
         </View>
 
         {/* Firewall Overview */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Firewall Overview</Text>
+        <View style={[styles.section, { backgroundColor: colors.surface }]}>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>Firewall Overview</Text>
           
-          <View style={styles.metricCard}>
-            <Text style={styles.metricLabel}>Total Firewall Events</Text>
-            <Text style={styles.metricValue}>{formatNumber(data.totalEvents)}</Text>
-            <Text style={styles.metricSubtext}>
+          <View style={[styles.metricCard, { backgroundColor: colors.background, borderColor: colors.border }]}>
+            <Text style={[styles.metricLabel, { color: colors.textSecondary }]}>Total Firewall Events</Text>
+            <Text style={[styles.metricValue, { color: colors.text }]}>{formatNumber(data.totalEvents)}</Text>
+            <Text style={[styles.metricSubtext, { color: colors.textDisabled }]}>
               Events triggered across {data.rules.length} rules
             </Text>
           </View>
         </View>
 
         {/* Top Triggered Rules */}
-        <View style={styles.section}>
+        <View style={[styles.section, { backgroundColor: colors.surface }]}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>
               {showAllRules ? 'All Firewall Rules' : 'Top 10 Triggered Rules'}
             </Text>
             {data.rules.length > 10 && (
               <TouchableOpacity
-                style={styles.toggleButton}
+                style={[styles.toggleButton, { backgroundColor: colors.info + '20' }]}
                 onPress={() => setShowAllRules(!showAllRules)}
               >
-                <Text style={styles.toggleButtonText}>
+                <Text style={[styles.toggleButtonText, { color: colors.secondary }]}>
                   {showAllRules ? 'Show Top 10' : 'Show All'}
                 </Text>
               </TouchableOpacity>
@@ -274,20 +276,20 @@ export default function FirewallAnalysisScreen() {
           </View>
 
           {displayRules.length === 0 ? (
-            <Text style={styles.noRulesText}>No firewall rules triggered</Text>
+            <Text style={[styles.noRulesText, { color: colors.textDisabled }]}>No firewall rules triggered</Text>
           ) : (
             <View style={styles.rulesList}>
               {displayRules.map((rule, index) => (
-                <View key={`${rule.ruleId}-${index}`} style={styles.ruleCard}>
+                <View key={`${rule.ruleId}-${index}`} style={[styles.ruleCard, { backgroundColor: colors.background, borderColor: colors.border }]}>
                   <View style={styles.ruleHeader}>
-                    <View style={styles.ruleRank}>
+                    <View style={[styles.ruleRank, { backgroundColor: colors.secondary }]}>
                       <Text style={styles.ruleRankText}>#{index + 1}</Text>
                     </View>
                     <View style={styles.ruleInfo}>
-                      <Text style={styles.ruleName} numberOfLines={2}>
+                      <Text style={[styles.ruleName, { color: colors.text }]} numberOfLines={2}>
                         {rule.ruleName}
                       </Text>
-                      <Text style={styles.ruleId} numberOfLines={1}>
+                      <Text style={[styles.ruleId, { color: colors.textDisabled }]} numberOfLines={1}>
                         ID: {rule.ruleId}
                       </Text>
                     </View>
@@ -295,7 +297,7 @@ export default function FirewallAnalysisScreen() {
 
                   <View style={styles.ruleStats}>
                     <View style={styles.ruleStat}>
-                      <Text style={styles.ruleStatLabel}>Action</Text>
+                      <Text style={[styles.ruleStatLabel, { color: colors.textSecondary }]}>Action</Text>
                       <Text style={[
                         styles.ruleStatValue,
                         { color: getActionColor(rule.action) }
@@ -305,22 +307,22 @@ export default function FirewallAnalysisScreen() {
                     </View>
 
                     <View style={styles.ruleStat}>
-                      <Text style={styles.ruleStatLabel}>Count</Text>
-                      <Text style={styles.ruleStatValue}>
+                      <Text style={[styles.ruleStatLabel, { color: colors.textSecondary }]}>Count</Text>
+                      <Text style={[styles.ruleStatValue, { color: colors.text }]}>
                         {formatNumber(rule.count)}
                       </Text>
                     </View>
 
                     <View style={styles.ruleStat}>
-                      <Text style={styles.ruleStatLabel}>Percentage</Text>
-                      <Text style={styles.ruleStatValue}>
+                      <Text style={[styles.ruleStatLabel, { color: colors.textSecondary }]}>Percentage</Text>
+                      <Text style={[styles.ruleStatValue, { color: colors.text }]}>
                         {rule.percentage.toFixed(2)}%
                       </Text>
                     </View>
                   </View>
 
                   {/* Progress bar */}
-                  <View style={styles.progressBarContainer}>
+                  <View style={[styles.progressBarContainer, { backgroundColor: colors.border }]}>
                     <View
                       style={[
                         styles.progressBar,
@@ -338,12 +340,12 @@ export default function FirewallAnalysisScreen() {
         </View>
 
         {/* Info Section */}
-        <View style={styles.infoSection}>
-          <Text style={styles.infoTitle}>Understanding Firewall Actions</Text>
-          <Text style={styles.infoText}>
-            • <Text style={{ color: '#d32f2f' }}>BLOCK/DROP</Text>: Request was blocked{'\n'}
-            • <Text style={{ color: '#ff6b00' }}>CHALLENGE</Text>: User was challenged (CAPTCHA){'\n'}
-            • <Text style={{ color: '#4caf50' }}>ALLOW/LOG</Text>: Request was allowed or logged
+        <View style={[styles.infoSection, { backgroundColor: colors.info + '20' }]}>
+          <Text style={[styles.infoTitle, { color: colors.secondary }]}>Understanding Firewall Actions</Text>
+          <Text style={[styles.infoText, { color: colors.text }]}>
+            • <Text style={{ color: colors.error }}>BLOCK/DROP</Text>: Request was blocked{'\n'}
+            • <Text style={{ color: colors.warning }}>CHALLENGE</Text>: User was challenged (CAPTCHA){'\n'}
+            • <Text style={{ color: colors.success }}>ALLOW/LOG</Text>: Request was allowed or logged
           </Text>
         </View>
       </ScrollView>
@@ -354,7 +356,6 @@ export default function FirewallAnalysisScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
   },
   scrollView: {
     flex: 1,
@@ -370,23 +371,16 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     padding: 16,
-    backgroundColor: '#ffffff',
     borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
   },
   title: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#333',
   },
   exportButton: {
-    backgroundColor: '#0066cc',
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 8,
-  },
-  exportButtonDisabled: {
-    backgroundColor: '#cccccc',
   },
   exportButtonText: {
     color: '#ffffff',
@@ -395,14 +389,11 @@ const styles = StyleSheet.create({
   },
   lastRefresh: {
     fontSize: 12,
-    color: '#666',
     textAlign: 'center',
     paddingVertical: 8,
-    backgroundColor: '#ffffff',
   },
   timeRangeSelector: {
     flexDirection: 'row',
-    backgroundColor: '#fff',
     borderRadius: 8,
     padding: 4,
     margin: 16,
@@ -418,19 +409,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderRadius: 6,
   },
-  timeRangeButtonActive: {
-    backgroundColor: '#f6821f',
-  },
   timeRangeButtonText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#666',
-  },
-  timeRangeButtonTextActive: {
-    color: '#fff',
   },
   section: {
-    backgroundColor: '#ffffff',
     marginTop: 16,
     padding: 16,
     borderRadius: 8,
@@ -445,50 +428,40 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#333',
   },
   toggleButton: {
-    backgroundColor: '#e3f2fd',
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 6,
   },
   toggleButtonText: {
-    color: '#0066cc',
     fontSize: 14,
     fontWeight: '600',
   },
   metricCard: {
-    backgroundColor: '#f9f9f9',
     padding: 16,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#e0e0e0',
   },
   metricLabel: {
     fontSize: 14,
-    color: '#666',
     marginBottom: 8,
   },
   metricValue: {
     fontSize: 32,
     fontWeight: 'bold',
-    color: '#333',
     marginBottom: 4,
   },
   metricSubtext: {
     fontSize: 12,
-    color: '#999',
   },
   rulesList: {
     gap: 12,
   },
   ruleCard: {
-    backgroundColor: '#f9f9f9',
     padding: 16,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#e0e0e0',
   },
   ruleHeader: {
     flexDirection: 'row',
@@ -499,7 +472,6 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: '#0066cc',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
@@ -515,12 +487,10 @@ const styles = StyleSheet.create({
   ruleName: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#333',
     marginBottom: 4,
   },
   ruleId: {
     fontSize: 12,
-    color: '#999',
   },
   ruleStats: {
     flexDirection: 'row',
@@ -533,17 +503,14 @@ const styles = StyleSheet.create({
   },
   ruleStatLabel: {
     fontSize: 12,
-    color: '#666',
     marginBottom: 4,
   },
   ruleStatValue: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#333',
   },
   progressBarContainer: {
     height: 6,
-    backgroundColor: '#e0e0e0',
     borderRadius: 3,
     overflow: 'hidden',
   },
@@ -553,12 +520,10 @@ const styles = StyleSheet.create({
   },
   noRulesText: {
     fontSize: 14,
-    color: '#999',
     textAlign: 'center',
     paddingVertical: 24,
   },
   infoSection: {
-    backgroundColor: '#e3f2fd',
     marginTop: 16,
     marginHorizontal: 16,
     marginBottom: 24,
@@ -568,32 +533,26 @@ const styles = StyleSheet.create({
   infoTitle: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#0066cc',
     marginBottom: 8,
   },
   infoText: {
     fontSize: 14,
-    color: '#333',
     lineHeight: 22,
   },
   loadingText: {
     marginTop: 12,
     fontSize: 16,
-    color: '#666',
   },
   errorText: {
     fontSize: 16,
-    color: '#d32f2f',
     textAlign: 'center',
     marginBottom: 16,
   },
   noDataText: {
     fontSize: 16,
-    color: '#666',
     textAlign: 'center',
   },
   retryButton: {
-    backgroundColor: '#0066cc',
     paddingHorizontal: 24,
     paddingVertical: 12,
     borderRadius: 8,

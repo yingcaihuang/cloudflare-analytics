@@ -19,6 +19,7 @@ import { useTrafficMetrics } from '../hooks/useTrafficMetrics';
 import { MetricsQueryParams } from '../types';
 import { TrafficTrendChart, ZoneSelector } from '../components';
 import { ExportManager } from '../services';
+import { useTheme } from '../contexts/ThemeContext';
 
 interface DashboardScreenProps {
   zoneId: string;
@@ -26,6 +27,7 @@ interface DashboardScreenProps {
 }
 
 export default function DashboardScreen({ zoneId, zoneName = 'Unknown Zone' }: DashboardScreenProps) {
+  const { colors } = useTheme();
   const [refreshing, setRefreshing] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [timeRange, setTimeRange] = useState<'24h' | '7d' | '30d'>('24h');
@@ -263,17 +265,17 @@ export default function DashboardScreen({ zoneId, zoneName = 'Unknown Zone' }: D
 
     return (
       <View style={styles.metricCard}>
-        <View style={styles.metricCardInner}>
-          <Text style={styles.metricTitle}>{title}</Text>
-          <Text style={styles.metricValue}>{formatter(currentValue)}</Text>
+        <View style={[styles.metricCardInner, { backgroundColor: colors.surface }]}>
+          <Text style={[styles.metricTitle, { color: colors.textSecondary }]}>{title}</Text>
+          <Text style={[styles.metricValue, { color: colors.text }]}>{formatter(currentValue)}</Text>
           <View style={styles.comparisonRow}>
-            <Text style={styles.yesterdayLabel}>{getComparisonLabel()}: </Text>
-            <Text style={styles.yesterdayValue}>{formatter(comparisonValue)}</Text>
+            <Text style={[styles.yesterdayLabel, { color: colors.textDisabled }]}>{getComparisonLabel()}: </Text>
+            <Text style={[styles.yesterdayValue, { color: colors.textSecondary }]}>{formatter(comparisonValue)}</Text>
           </View>
           <Text
             style={[
               styles.changeText,
-              isPositive ? styles.changePositive : styles.changeNegative,
+              { color: isPositive ? colors.success : colors.error },
             ]}
           >
             {change}
@@ -289,9 +291,9 @@ export default function DashboardScreen({ zoneId, zoneName = 'Unknown Zone' }: D
    */
   if (loading && !currentData && !comparisonData) {
     return (
-      <View style={styles.centerContainer}>
-        <ActivityIndicator size="large" color="#f6821f" />
-        <Text style={styles.loadingText}>Loading traffic metrics...</Text>
+      <View style={[styles.centerContainer, { backgroundColor: colors.background }]}>
+        <ActivityIndicator size="large" color={colors.primary} />
+        <Text style={[styles.loadingText, { color: colors.textSecondary }]}>Loading traffic metrics...</Text>
       </View>
     );
   }
@@ -302,10 +304,10 @@ export default function DashboardScreen({ zoneId, zoneName = 'Unknown Zone' }: D
    */
   if (error && !currentData && !comparisonData) {
     return (
-      <View style={styles.centerContainer}>
-        <Text style={styles.errorTitle}>Unable to Load Data</Text>
-        <Text style={styles.errorMessage}>{error}</Text>
-        <TouchableOpacity style={styles.retryButton} onPress={handleRefresh}>
+      <View style={[styles.centerContainer, { backgroundColor: colors.background }]}>
+        <Text style={[styles.errorTitle, { color: colors.error }]}>Unable to Load Data</Text>
+        <Text style={[styles.errorMessage, { color: colors.textSecondary }]}>{error}</Text>
+        <TouchableOpacity style={[styles.retryButton, { backgroundColor: colors.primary }]} onPress={handleRefresh}>
           <Text style={styles.retryButtonText}>Retry</Text>
         </TouchableOpacity>
       </View>
@@ -314,14 +316,14 @@ export default function DashboardScreen({ zoneId, zoneName = 'Unknown Zone' }: D
 
   return (
     <ScrollView
-      style={styles.container}
+      style={[styles.container, { backgroundColor: colors.background }]}
       contentContainerStyle={styles.contentContainer}
       refreshControl={
         <RefreshControl
           refreshing={refreshing}
           onRefresh={handleRefresh}
-          colors={['#f6821f']}
-          tintColor="#f6821f"
+          colors={[colors.primary]}
+          tintColor={colors.primary}
         />
       }
     >
@@ -334,19 +336,19 @@ export default function DashboardScreen({ zoneId, zoneName = 'Unknown Zone' }: D
       <View style={styles.header}>
         <View style={styles.headerTop}>
           <View style={styles.headerLeft}>
-            <Text style={styles.title}>Traffic Overview</Text>
-            <Text style={styles.timeRangeLabel}>{getTimeRangeLabel()}</Text>
+            <Text style={[styles.title, { color: colors.text }]}>Traffic Overview</Text>
+            <Text style={[styles.timeRangeLabel, { color: colors.primary }]}>{getTimeRangeLabel()}</Text>
             {currentRefreshTime && (
-              <Text style={styles.lastUpdate}>
+              <Text style={[styles.lastUpdate, { color: colors.textSecondary }]}>
                 Last updated: {currentRefreshTime.toLocaleTimeString()}
               </Text>
             )}
             {(currentFromCache || comparisonFromCache) && (
-              <Text style={styles.cacheIndicator}>📦 Showing cached data</Text>
+              <Text style={[styles.cacheIndicator, { color: colors.primary }]}>📦 Showing cached data</Text>
             )}
           </View>
           <TouchableOpacity
-            style={[styles.exportButton, exporting && styles.exportButtonDisabled]}
+            style={[styles.exportButton, { backgroundColor: colors.primary }, exporting && styles.exportButtonDisabled]}
             onPress={handleExport}
             disabled={exporting || !currentData}
           >
@@ -357,28 +359,28 @@ export default function DashboardScreen({ zoneId, zoneName = 'Unknown Zone' }: D
         </View>
 
         {/* Time Range Selector */}
-        <View style={styles.timeRangeSelector}>
+        <View style={[styles.timeRangeSelector, { backgroundColor: colors.surface }]}>
           <TouchableOpacity
-            style={[styles.timeRangeButton, timeRange === '24h' && styles.timeRangeButtonActive]}
+            style={[styles.timeRangeButton, timeRange === '24h' && { backgroundColor: colors.primary }]}
             onPress={() => setTimeRange('24h')}
           >
-            <Text style={[styles.timeRangeButtonText, timeRange === '24h' && styles.timeRangeButtonTextActive]}>
+            <Text style={[styles.timeRangeButtonText, { color: timeRange === '24h' ? '#fff' : colors.textSecondary }]}>
               24小时
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
-            style={[styles.timeRangeButton, timeRange === '7d' && styles.timeRangeButtonActive]}
+            style={[styles.timeRangeButton, timeRange === '7d' && { backgroundColor: colors.primary }]}
             onPress={() => setTimeRange('7d')}
           >
-            <Text style={[styles.timeRangeButtonText, timeRange === '7d' && styles.timeRangeButtonTextActive]}>
+            <Text style={[styles.timeRangeButtonText, { color: timeRange === '7d' ? '#fff' : colors.textSecondary }]}>
               7天
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
-            style={[styles.timeRangeButton, timeRange === '30d' && styles.timeRangeButtonActive]}
+            style={[styles.timeRangeButton, timeRange === '30d' && { backgroundColor: colors.primary }]}
             onPress={() => setTimeRange('30d')}
           >
-            <Text style={[styles.timeRangeButtonText, timeRange === '30d' && styles.timeRangeButtonTextActive]}>
+            <Text style={[styles.timeRangeButtonText, { color: timeRange === '30d' ? '#fff' : colors.textSecondary }]}>
               30天
             </Text>
           </TouchableOpacity>
@@ -387,8 +389,8 @@ export default function DashboardScreen({ zoneId, zoneName = 'Unknown Zone' }: D
 
       {/* Error banner if partial data */}
       {error && (currentData || comparisonData) && (
-        <View style={styles.errorBanner}>
-          <Text style={styles.errorBannerText}>⚠️ {error}</Text>
+        <View style={[styles.errorBanner, { backgroundColor: colors.warning + '20', borderLeftColor: colors.primary }]}>
+          <Text style={[styles.errorBannerText, { color: colors.text }]}>⚠️ {error}</Text>
         </View>
       )}
 
@@ -443,8 +445,8 @@ export default function DashboardScreen({ zoneId, zoneName = 'Unknown Zone' }: D
       />
 
       {/* Info Section */}
-      <View style={styles.infoSection}>
-        <Text style={styles.infoText}>
+      <View style={[styles.infoSection, { backgroundColor: colors.surface }]}>
+        <Text style={[styles.infoText, { color: colors.textSecondary }]}>
           Pull down to refresh data. Metrics are updated in real-time.
         </Text>
       </View>
@@ -455,7 +457,6 @@ export default function DashboardScreen({ zoneId, zoneName = 'Unknown Zone' }: D
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
   },
   contentContainer: {
     padding: 16,
@@ -468,7 +469,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
-    backgroundColor: '#f5f5f5',
   },
   header: {
     marginBottom: 20,
@@ -482,7 +482,6 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   exportButton: {
-    backgroundColor: '#f6821f',
     paddingHorizontal: 16,
     paddingVertical: 10,
     borderRadius: 8,
@@ -499,19 +498,16 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#333',
     marginBottom: 4,
   },
   timeRangeLabel: {
     fontSize: 14,
-    color: '#f6821f',
     fontWeight: '600',
     marginTop: 2,
   },
   timeRangeSelector: {
     flexDirection: 'row',
     marginTop: 16,
-    backgroundColor: '#f0f0f0',
     borderRadius: 8,
     padding: 4,
   },
@@ -522,58 +518,42 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     alignItems: 'center',
   },
-  timeRangeButtonActive: {
-    backgroundColor: '#f6821f',
-  },
   timeRangeButtonText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#666',
-  },
-  timeRangeButtonTextActive: {
-    color: '#fff',
   },
   lastUpdate: {
     fontSize: 14,
-    color: '#666',
     marginTop: 4,
   },
   cacheIndicator: {
     fontSize: 13,
-    color: '#f6821f',
     marginTop: 4,
   },
   loadingText: {
     marginTop: 12,
     fontSize: 16,
-    color: '#666',
   },
   errorTitle: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#e74c3c',
     marginBottom: 8,
   },
   errorMessage: {
     fontSize: 16,
-    color: '#666',
     textAlign: 'center',
     marginBottom: 20,
   },
   errorBanner: {
-    backgroundColor: '#fff3cd',
     borderRadius: 8,
     padding: 12,
     marginBottom: 16,
     borderLeftWidth: 4,
-    borderLeftColor: '#f6821f',
   },
   errorBannerText: {
     fontSize: 14,
-    color: '#856404',
   },
   retryButton: {
-    backgroundColor: '#f6821f',
     paddingHorizontal: 24,
     paddingVertical: 12,
     borderRadius: 8,
@@ -593,7 +573,6 @@ const styles = StyleSheet.create({
     padding: 8,
   },
   metricCardInner: {
-    backgroundColor: '#fff',
     borderRadius: 12,
     padding: 16,
     shadowColor: '#000',
@@ -604,14 +583,12 @@ const styles = StyleSheet.create({
   },
   metricTitle: {
     fontSize: 14,
-    color: '#666',
     marginBottom: 8,
     fontWeight: '500',
   },
   metricValue: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#333',
     marginBottom: 8,
   },
   comparisonRow: {
@@ -621,32 +598,22 @@ const styles = StyleSheet.create({
   },
   yesterdayLabel: {
     fontSize: 12,
-    color: '#999',
   },
   yesterdayValue: {
     fontSize: 12,
-    color: '#666',
     fontWeight: '500',
   },
   changeText: {
     fontSize: 14,
     fontWeight: '600',
   },
-  changePositive: {
-    color: '#27ae60',
-  },
-  changeNegative: {
-    color: '#e74c3c',
-  },
   infoSection: {
     marginTop: 20,
     padding: 16,
-    backgroundColor: '#fff',
     borderRadius: 12,
   },
   infoText: {
     fontSize: 14,
-    color: '#666',
     textAlign: 'center',
     lineHeight: 20,
   },

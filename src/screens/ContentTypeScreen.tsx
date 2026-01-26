@@ -19,6 +19,7 @@ import { useContentTypeDistribution } from '../hooks/useContentTypeDistribution'
 import { useZone } from '../contexts/ZoneContext';
 import { MetricsQueryParams } from '../types';
 import { PieChart } from '../components';
+import { useTheme } from '../contexts/ThemeContext';
 
 interface ContentTypeStats {
   contentType: string;
@@ -30,6 +31,7 @@ interface ContentTypeStats {
 }
 
 export default function ContentTypeScreen() {
+  const { colors } = useTheme();
   const { zoneId, accountTag } = useZone();
   const [refreshing, setRefreshing] = useState(false);
   const [showAll, setShowAll] = useState(false);
@@ -198,7 +200,7 @@ export default function ContentTypeScreen() {
       name: stat.displayName,
       value: stat.requests,
       color: stat.color,
-      legendFontColor: '#333',
+      legendFontColor: colors.text,
       legendFontSize: 12,
     }));
   };
@@ -223,9 +225,9 @@ export default function ContentTypeScreen() {
    */
   if (loading && !data) {
     return (
-      <View style={styles.centerContainer}>
-        <ActivityIndicator size="large" color="#f6821f" />
-        <Text style={styles.loadingText}>Loading content type distribution...</Text>
+      <View style={[styles.centerContainer, { backgroundColor: colors.background }]}>
+        <ActivityIndicator size="large" color={colors.primary} />
+        <Text style={[styles.loadingText, { color: colors.textSecondary }]}>Loading content type distribution...</Text>
       </View>
     );
   }
@@ -235,10 +237,10 @@ export default function ContentTypeScreen() {
    */
   if (error && !data) {
     return (
-      <View style={styles.centerContainer}>
-        <Text style={styles.errorTitle}>Unable to Load Data</Text>
-        <Text style={styles.errorMessage}>{error}</Text>
-        <TouchableOpacity style={styles.retryButton} onPress={handleRefresh}>
+      <View style={[styles.centerContainer, { backgroundColor: colors.background }]}>
+        <Text style={[styles.errorTitle, { color: colors.error }]}>Unable to Load Data</Text>
+        <Text style={[styles.errorMessage, { color: colors.textSecondary }]}>{error}</Text>
+        <TouchableOpacity style={[styles.retryButton, { backgroundColor: colors.primary }]} onPress={handleRefresh}>
           <Text style={styles.retryButtonText}>Retry</Text>
         </TouchableOpacity>
       </View>
@@ -252,7 +254,7 @@ export default function ContentTypeScreen() {
   const screenWidth = Dimensions.get('window').width;
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.contentContainer}
@@ -260,47 +262,47 @@ export default function ContentTypeScreen() {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={handleRefresh}
-            colors={['#f6821f']}
-            tintColor="#f6821f"
+            colors={[colors.primary]}
+            tintColor={colors.primary}
           />
         }
       >
         {/* Header */}
         <View style={styles.header}>
-          <Text style={styles.title}>Content Type Distribution</Text>
+          <Text style={[styles.title, { color: colors.text }]}>Content Type Distribution</Text>
           {lastRefreshTime && (
-            <Text style={styles.lastUpdate}>
+            <Text style={[styles.lastUpdate, { color: colors.textSecondary }]}>
               Last updated: {lastRefreshTime.toLocaleTimeString()}
             </Text>
           )}
           {isFromCache && (
-            <Text style={styles.cacheIndicator}>📦 Showing cached data</Text>
+            <Text style={[styles.cacheIndicator, { color: colors.primary }]}>📦 Showing cached data</Text>
           )}
         </View>
 
         {/* Time Range Selector */}
-        <View style={styles.timeRangeSelector}>
+        <View style={[styles.timeRangeSelector, { backgroundColor: colors.surface }]}>
           <TouchableOpacity
-            style={[styles.timeRangeButton, timeRange === '24h' && styles.timeRangeButtonActive]}
+            style={[styles.timeRangeButton, timeRange === '24h' && { backgroundColor: colors.primary }]}
             onPress={() => setTimeRange('24h')}
           >
-            <Text style={[styles.timeRangeButtonText, timeRange === '24h' && styles.timeRangeButtonTextActive]}>
+            <Text style={[styles.timeRangeButtonText, { color: timeRange === '24h' ? '#fff' : colors.textSecondary }]}>
               24H
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
-            style={[styles.timeRangeButton, timeRange === '7d' && styles.timeRangeButtonActive]}
+            style={[styles.timeRangeButton, timeRange === '7d' && { backgroundColor: colors.primary }]}
             onPress={() => setTimeRange('7d')}
           >
-            <Text style={[styles.timeRangeButtonText, timeRange === '7d' && styles.timeRangeButtonTextActive]}>
+            <Text style={[styles.timeRangeButtonText, { color: timeRange === '7d' ? '#fff' : colors.textSecondary }]}>
               7D
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
-            style={[styles.timeRangeButton, timeRange === '30d' && styles.timeRangeButtonActive]}
+            style={[styles.timeRangeButton, timeRange === '30d' && { backgroundColor: colors.primary }]}
             onPress={() => setTimeRange('30d')}
           >
-            <Text style={[styles.timeRangeButtonText, timeRange === '30d' && styles.timeRangeButtonTextActive]}>
+            <Text style={[styles.timeRangeButtonText, { color: timeRange === '30d' ? '#fff' : colors.textSecondary }]}>
               30D
             </Text>
           </TouchableOpacity>
@@ -308,29 +310,29 @@ export default function ContentTypeScreen() {
 
         {/* Error banner if partial data */}
         {error && data && (
-          <View style={styles.errorBanner}>
-            <Text style={styles.errorBannerText}>⚠️ {error}</Text>
+          <View style={[styles.errorBanner, { backgroundColor: colors.warning + '20', borderLeftColor: colors.warning }]}>
+            <Text style={[styles.errorBannerText, { color: colors.text }]}>⚠️ {error}</Text>
           </View>
         )}
 
         {/* Summary Cards */}
         {data && (
           <View style={styles.summaryRow}>
-            <View style={styles.summaryCard}>
-              <Text style={styles.summaryLabel}>Total Requests</Text>
-              <Text style={styles.summaryValue}>{formatNumber(totals.requests)}</Text>
+            <View style={[styles.summaryCard, { backgroundColor: colors.surface }]}>
+              <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>Total Requests</Text>
+              <Text style={[styles.summaryValue, { color: colors.text }]}>{formatNumber(totals.requests)}</Text>
             </View>
-            <View style={styles.summaryCard}>
-              <Text style={styles.summaryLabel}>Total Bytes</Text>
-              <Text style={styles.summaryValue}>{formatBytes(totals.bytes)}</Text>
+            <View style={[styles.summaryCard, { backgroundColor: colors.surface }]}>
+              <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>Total Bytes</Text>
+              <Text style={[styles.summaryValue, { color: colors.text }]}>{formatBytes(totals.bytes)}</Text>
             </View>
           </View>
         )}
 
         {/* Pie Chart - Top 10 */}
         {data && contentTypeStats.length > 0 && (
-          <View style={styles.chartSection}>
-            <Text style={styles.sectionTitle}>Top 10 Content Types</Text>
+          <View style={[styles.chartSection, { backgroundColor: colors.surface }]}>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>Top 10 Content Types</Text>
             <View style={styles.chartContainer}>
               <PieChart
                 data={getChartData()}
@@ -346,12 +348,12 @@ export default function ContentTypeScreen() {
         {displayStats.length > 0 && (
           <View style={styles.detailsSection}>
             <View style={styles.detailsHeader}>
-              <Text style={styles.sectionTitle}>
+              <Text style={[styles.sectionTitle, { color: colors.text }]}>
                 {showAll ? 'All Content Types' : 'Top 10 Content Types'}
               </Text>
               {contentTypeStats.length > 10 && (
                 <TouchableOpacity
-                  style={styles.toggleButton}
+                  style={[styles.toggleButton, { backgroundColor: colors.primary }]}
                   onPress={() => setShowAll(!showAll)}
                 >
                   <Text style={styles.toggleButtonText}>
@@ -361,16 +363,16 @@ export default function ContentTypeScreen() {
               )}
             </View>
             {displayStats.map((type, index) => (
-              <View key={type.contentType} style={styles.contentTypeCard}>
+              <View key={type.contentType} style={[styles.contentTypeCard, { backgroundColor: colors.surface }]}>
                 <View style={styles.contentTypeHeader}>
                   <View style={styles.contentTypeTitleRow}>
                     <View style={[styles.colorIndicator, { backgroundColor: type.color }]} />
                     <View style={styles.contentTypeTitleContainer}>
-                      <Text style={styles.contentTypeName}>{type.displayName}</Text>
-                      <Text style={styles.contentTypeRaw}>{type.contentType}</Text>
+                      <Text style={[styles.contentTypeName, { color: colors.text }]}>{type.displayName}</Text>
+                      <Text style={[styles.contentTypeRaw, { color: colors.textDisabled }]}>{type.contentType}</Text>
                     </View>
                   </View>
-                  <View style={styles.rankBadge}>
+                  <View style={[styles.rankBadge, { backgroundColor: colors.primary }]}>
                     <Text style={styles.rankText}>#{index + 1}</Text>
                   </View>
                 </View>
@@ -378,21 +380,21 @@ export default function ContentTypeScreen() {
                 {/* Stats Grid - Requirement 21.4: Display requests and bytes */}
                 <View style={styles.statsGrid}>
                   <View style={styles.statItem}>
-                    <Text style={styles.statLabel}>Requests</Text>
-                    <Text style={styles.statValue}>{formatNumber(type.requests)}</Text>
+                    <Text style={[styles.statLabel, { color: colors.textDisabled }]}>Requests</Text>
+                    <Text style={[styles.statValue, { color: colors.text }]}>{formatNumber(type.requests)}</Text>
                   </View>
                   <View style={styles.statItem}>
-                    <Text style={styles.statLabel}>Bytes</Text>
-                    <Text style={styles.statValue}>{formatBytes(type.bytes)}</Text>
+                    <Text style={[styles.statLabel, { color: colors.textDisabled }]}>Bytes</Text>
+                    <Text style={[styles.statValue, { color: colors.text }]}>{formatBytes(type.bytes)}</Text>
                   </View>
                   <View style={styles.statItem}>
-                    <Text style={styles.statLabel}>Percentage</Text>
-                    <Text style={styles.statValue}>{formatPercentage(type.percentage)}</Text>
+                    <Text style={[styles.statLabel, { color: colors.textDisabled }]}>Percentage</Text>
+                    <Text style={[styles.statValue, { color: colors.text }]}>{formatPercentage(type.percentage)}</Text>
                   </View>
                 </View>
 
                 {/* Progress bar */}
-                <View style={styles.progressBarContainer}>
+                <View style={[styles.progressBarContainer, { backgroundColor: colors.border }]}>
                   <View
                     style={[
                       styles.progressBar,
@@ -410,15 +412,15 @@ export default function ContentTypeScreen() {
 
         {/* Empty State */}
         {data && contentTypeStats.length === 0 && (
-          <View style={styles.emptyState}>
-            <Text style={styles.emptyStateText}>No content type data available</Text>
+          <View style={[styles.emptyState, { backgroundColor: colors.surface }]}>
+            <Text style={[styles.emptyStateText, { color: colors.textDisabled }]}>No content type data available</Text>
           </View>
         )}
 
         {/* Info Section */}
-        <View style={styles.infoSection}>
-          <Text style={styles.infoTitle}>About Content Types</Text>
-          <Text style={styles.infoText}>
+        <View style={[styles.infoSection, { backgroundColor: colors.surface }]}>
+          <Text style={[styles.infoTitle, { color: colors.text }]}>About Content Types</Text>
+          <Text style={[styles.infoText, { color: colors.textSecondary }]}>
             Content types indicate the format of resources served by your website. Common types include:{'\n\n'}
             • HTML: Web pages{'\n'}
             • CSS/JavaScript: Stylesheets and scripts{'\n'}
@@ -436,7 +438,6 @@ export default function ContentTypeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
   },
   scrollView: {
     flex: 1,
@@ -449,14 +450,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
-    backgroundColor: '#f5f5f5',
   },
   header: {
     marginBottom: 16,
   },
   timeRangeSelector: {
     flexDirection: 'row',
-    backgroundColor: '#fff',
     borderRadius: 8,
     padding: 4,
     marginBottom: 20,
@@ -472,64 +471,47 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderRadius: 6,
   },
-  timeRangeButtonActive: {
-    backgroundColor: '#f6821f',
-  },
   timeRangeButtonText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#666',
-  },
-  timeRangeButtonTextActive: {
-    color: '#fff',
   },
   title: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#333',
     marginBottom: 4,
   },
   lastUpdate: {
     fontSize: 14,
-    color: '#666',
     marginTop: 4,
   },
   cacheIndicator: {
     fontSize: 13,
-    color: '#f6821f',
     marginTop: 4,
   },
   loadingText: {
     marginTop: 12,
     fontSize: 16,
-    color: '#666',
   },
   errorTitle: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#e74c3c',
     marginBottom: 8,
   },
   errorMessage: {
     fontSize: 16,
-    color: '#666',
     textAlign: 'center',
     marginBottom: 20,
   },
   errorBanner: {
-    backgroundColor: '#fff3cd',
     borderRadius: 8,
     padding: 12,
     marginBottom: 16,
     borderLeftWidth: 4,
-    borderLeftColor: '#f6821f',
   },
   errorBannerText: {
     fontSize: 14,
-    color: '#856404',
   },
   retryButton: {
-    backgroundColor: '#f6821f',
     paddingHorizontal: 24,
     paddingVertical: 12,
     borderRadius: 8,
@@ -546,7 +528,6 @@ const styles = StyleSheet.create({
   },
   summaryCard: {
     flex: 1,
-    backgroundColor: '#fff',
     borderRadius: 12,
     padding: 16,
     alignItems: 'center',
@@ -558,16 +539,13 @@ const styles = StyleSheet.create({
   },
   summaryLabel: {
     fontSize: 12,
-    color: '#666',
     marginBottom: 8,
   },
   summaryValue: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#333',
   },
   chartSection: {
-    backgroundColor: '#fff',
     borderRadius: 12,
     padding: 16,
     marginBottom: 20,
@@ -580,7 +558,6 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#333',
     marginBottom: 16,
   },
   chartContainer: {
@@ -596,7 +573,6 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   toggleButton: {
-    backgroundColor: '#f6821f',
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 6,
@@ -607,7 +583,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   contentTypeCard: {
-    backgroundColor: '#fff',
     borderRadius: 12,
     padding: 16,
     marginBottom: 12,
@@ -641,15 +616,12 @@ const styles = StyleSheet.create({
   contentTypeName: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#333',
     marginBottom: 2,
   },
   contentTypeRaw: {
     fontSize: 12,
-    color: '#999',
   },
   rankBadge: {
-    backgroundColor: '#f6821f',
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 12,
@@ -668,17 +640,14 @@ const styles = StyleSheet.create({
   },
   statLabel: {
     fontSize: 11,
-    color: '#999',
     marginBottom: 4,
   },
   statValue: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#333',
   },
   progressBarContainer: {
     height: 8,
-    backgroundColor: '#f0f0f0',
     borderRadius: 4,
     overflow: 'hidden',
   },
@@ -687,7 +656,6 @@ const styles = StyleSheet.create({
     borderRadius: 4,
   },
   emptyState: {
-    backgroundColor: '#fff',
     borderRadius: 12,
     padding: 40,
     alignItems: 'center',
@@ -699,10 +667,8 @@ const styles = StyleSheet.create({
   },
   emptyStateText: {
     fontSize: 16,
-    color: '#999',
   },
   infoSection: {
-    backgroundColor: '#fff',
     borderRadius: 12,
     padding: 16,
     marginBottom: 20,
@@ -710,12 +676,10 @@ const styles = StyleSheet.create({
   infoTitle: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#333',
     marginBottom: 12,
   },
   infoText: {
     fontSize: 14,
-    color: '#666',
     lineHeight: 22,
   },
 });

@@ -20,6 +20,7 @@ import { useSecurityMetrics } from '../hooks/useSecurityMetrics';
 import { MetricsQueryParams } from '../types';
 import { SecurityEventTrendChart, ZoneSelector } from '../components';
 import { ExportManager } from '../services';
+import { useTheme } from '../contexts/ThemeContext';
 
 interface SecurityScreenProps {
   zoneId: string;
@@ -27,6 +28,7 @@ interface SecurityScreenProps {
 }
 
 export default function SecurityScreen({ zoneId, zoneName = 'Unknown Zone' }: SecurityScreenProps) {
+  const { colors } = useTheme();
   const [refreshing, setRefreshing] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [timeRange, setTimeRange] = useState<'24h' | '7d' | '30d'>('24h');
@@ -155,9 +157,9 @@ export default function SecurityScreen({ zoneId, zoneName = 'Unknown Zone' }: Se
    */
   if (loading && !data) {
     return (
-      <View style={styles.centerContainer}>
-        <ActivityIndicator size="large" color="#f6821f" />
-        <Text style={styles.loadingText}>Loading security metrics...</Text>
+      <View style={[styles.centerContainer, { backgroundColor: colors.background }]}>
+        <ActivityIndicator size="large" color={colors.primary} />
+        <Text style={[styles.loadingText, { color: colors.textSecondary }]}>Loading security metrics...</Text>
       </View>
     );
   }
@@ -167,10 +169,10 @@ export default function SecurityScreen({ zoneId, zoneName = 'Unknown Zone' }: Se
    */
   if (error && !data) {
     return (
-      <View style={styles.centerContainer}>
-        <Text style={styles.errorTitle}>Unable to Load Data</Text>
-        <Text style={styles.errorMessage}>{error}</Text>
-        <TouchableOpacity style={styles.retryButton} onPress={handleRefresh}>
+      <View style={[styles.centerContainer, { backgroundColor: colors.background }]}>
+        <Text style={[styles.errorTitle, { color: colors.error }]}>Unable to Load Data</Text>
+        <Text style={[styles.errorMessage, { color: colors.textSecondary }]}>{error}</Text>
+        <TouchableOpacity style={[styles.retryButton, { backgroundColor: colors.primary }]} onPress={handleRefresh}>
           <Text style={styles.retryButtonText}>Retry</Text>
         </TouchableOpacity>
       </View>
@@ -179,8 +181,8 @@ export default function SecurityScreen({ zoneId, zoneName = 'Unknown Zone' }: Se
 
   if (!data) {
     return (
-      <View style={styles.centerContainer}>
-        <Text style={styles.errorMessage}>No data available</Text>
+      <View style={[styles.centerContainer, { backgroundColor: colors.background }]}>
+        <Text style={[styles.errorMessage, { color: colors.textSecondary }]}>No data available</Text>
       </View>
     );
   }
@@ -191,14 +193,14 @@ export default function SecurityScreen({ zoneId, zoneName = 'Unknown Zone' }: Se
 
   return (
     <ScrollView
-      style={styles.container}
+      style={[styles.container, { backgroundColor: colors.background }]}
       contentContainerStyle={styles.contentContainer}
       refreshControl={
         <RefreshControl
           refreshing={refreshing}
           onRefresh={handleRefresh}
-          colors={['#f6821f']}
-          tintColor="#f6821f"
+          colors={[colors.primary]}
+          tintColor={colors.primary}
         />
       }
     >
@@ -211,18 +213,18 @@ export default function SecurityScreen({ zoneId, zoneName = 'Unknown Zone' }: Se
       <View style={styles.header}>
         <View style={styles.headerTop}>
           <View style={styles.headerLeft}>
-            <Text style={styles.title}>Security & Cache</Text>
+            <Text style={[styles.title, { color: colors.text }]}>Security & Cache</Text>
             {lastRefreshTime && (
-              <Text style={styles.lastUpdate}>
+              <Text style={[styles.lastUpdate, { color: colors.textSecondary }]}>
                 Last updated: {lastRefreshTime.toLocaleTimeString()}
               </Text>
             )}
             {isFromCache && (
-              <Text style={styles.cacheIndicator}>📦 Showing cached data</Text>
+              <Text style={[styles.cacheIndicator, { color: colors.primary }]}>📦 Showing cached data</Text>
             )}
           </View>
           <TouchableOpacity
-            style={[styles.exportButton, exporting && styles.exportButtonDisabled]}
+            style={[styles.exportButton, { backgroundColor: colors.primary }, exporting && styles.exportButtonDisabled]}
             onPress={handleExport}
             disabled={exporting || !data}
           >
@@ -233,28 +235,28 @@ export default function SecurityScreen({ zoneId, zoneName = 'Unknown Zone' }: Se
         </View>
 
         {/* Time Range Selector */}
-        <View style={styles.timeRangeSelector}>
+        <View style={[styles.timeRangeSelector, { backgroundColor: colors.surface }]}>
           <TouchableOpacity
-            style={[styles.timeRangeButton, timeRange === '24h' && styles.timeRangeButtonActive]}
+            style={[styles.timeRangeButton, timeRange === '24h' && { backgroundColor: colors.primary }]}
             onPress={() => setTimeRange('24h')}
           >
-            <Text style={[styles.timeRangeButtonText, timeRange === '24h' && styles.timeRangeButtonTextActive]}>
+            <Text style={[styles.timeRangeButtonText, { color: timeRange === '24h' ? '#fff' : colors.textSecondary }]}>
               24H
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
-            style={[styles.timeRangeButton, timeRange === '7d' && styles.timeRangeButtonActive]}
+            style={[styles.timeRangeButton, timeRange === '7d' && { backgroundColor: colors.primary }]}
             onPress={() => setTimeRange('7d')}
           >
-            <Text style={[styles.timeRangeButtonText, timeRange === '7d' && styles.timeRangeButtonTextActive]}>
+            <Text style={[styles.timeRangeButtonText, { color: timeRange === '7d' ? '#fff' : colors.textSecondary }]}>
               7D
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
-            style={[styles.timeRangeButton, timeRange === '30d' && styles.timeRangeButtonActive]}
+            style={[styles.timeRangeButton, timeRange === '30d' && { backgroundColor: colors.primary }]}
             onPress={() => setTimeRange('30d')}
           >
-            <Text style={[styles.timeRangeButtonText, timeRange === '30d' && styles.timeRangeButtonTextActive]}>
+            <Text style={[styles.timeRangeButtonText, { color: timeRange === '30d' ? '#fff' : colors.textSecondary }]}>
               30D
             </Text>
           </TouchableOpacity>
@@ -263,26 +265,26 @@ export default function SecurityScreen({ zoneId, zoneName = 'Unknown Zone' }: Se
 
       {/* Error banner if partial data */}
       {error && data && (
-        <View style={styles.errorBanner}>
-          <Text style={styles.errorBannerText}>⚠️ {error}</Text>
+        <View style={[styles.errorBanner, { backgroundColor: colors.warning + '20', borderLeftColor: colors.primary }]}>
+          <Text style={[styles.errorBannerText, { color: colors.text }]}>⚠️ {error}</Text>
         </View>
       )}
 
       {/* Cache Status Section */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Cache Performance</Text>
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>Cache Performance</Text>
         
         {/* Cache Hit Rate - Requirement 4.2 */}
-        <View style={styles.largeMetricCard}>
-          <Text style={styles.largeMetricLabel}>Cache Hit Rate</Text>
-          <Text style={styles.largeMetricValue}>
+        <View style={[styles.largeMetricCard, { backgroundColor: colors.surface }]}>
+          <Text style={[styles.largeMetricLabel, { color: colors.textSecondary }]}>Cache Hit Rate</Text>
+          <Text style={[styles.largeMetricValue, { color: colors.text }]}>
             {cacheHitRate.toFixed(1)}%
           </Text>
-          <View style={styles.progressBar}>
+          <View style={[styles.progressBar, { backgroundColor: colors.border }]}>
             <View 
               style={[
                 styles.progressFill, 
-                { width: `${cacheHitRate}%` }
+                { width: `${cacheHitRate}%`, backgroundColor: colors.success }
               ]} 
             />
           </View>
@@ -290,103 +292,104 @@ export default function SecurityScreen({ zoneId, zoneName = 'Unknown Zone' }: Se
 
         {/* Cache Status Breakdown */}
         <View style={styles.metricsGrid}>
-          <View style={styles.smallMetricCard}>
-            <Text style={styles.smallMetricValue}>
+          <View style={[styles.smallMetricCard, { backgroundColor: colors.success + '20' }]}>
+            <Text style={[styles.smallMetricValue, { color: colors.success }]}>
               {formatNumber(data.cacheStatus.hit)}
             </Text>
-            <Text style={styles.smallMetricLabel}>Hits</Text>
+            <Text style={[styles.smallMetricLabel, { color: colors.textSecondary }]}>Hits</Text>
           </View>
-          <View style={styles.smallMetricCard}>
-            <Text style={styles.smallMetricValue}>
+          <View style={[styles.smallMetricCard, { backgroundColor: colors.error + '20' }]}>
+            <Text style={[styles.smallMetricValue, { color: colors.error }]}>
               {formatNumber(data.cacheStatus.miss)}
             </Text>
-            <Text style={styles.smallMetricLabel}>Misses</Text>
+            <Text style={[styles.smallMetricLabel, { color: colors.textSecondary }]}>Misses</Text>
           </View>
-          <View style={styles.smallMetricCard}>
-            <Text style={styles.smallMetricValue}>
+          <View style={[styles.smallMetricCard, { backgroundColor: colors.warning + '20' }]}>
+            <Text style={[styles.smallMetricValue, { color: colors.warning }]}>
               {formatNumber(data.cacheStatus.expired)}
             </Text>
-            <Text style={styles.smallMetricLabel}>Expired</Text>
+            <Text style={[styles.smallMetricLabel, { color: colors.textSecondary }]}>Expired</Text>
           </View>
-          <View style={styles.smallMetricCard}>
-            <Text style={styles.smallMetricValue}>
+          <View style={[styles.smallMetricCard, { backgroundColor: colors.textDisabled + '20' }]}>
+            <Text style={[styles.smallMetricValue, { color: colors.textSecondary }]}>
               {formatNumber(data.cacheStatus.stale)}
             </Text>
-            <Text style={styles.smallMetricLabel}>Stale</Text>
+            <Text style={[styles.smallMetricLabel, { color: colors.textSecondary }]}>Stale</Text>
           </View>
         </View>
       </View>
 
       {/* Firewall Events Section - Requirement 4.3 */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Firewall Events</Text>
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>Firewall Events</Text>
         
         {/* Total Events */}
-        <View style={styles.largeMetricCard}>
-          <Text style={styles.largeMetricLabel}>Total Events</Text>
-          <Text style={styles.largeMetricValue}>
+        <View style={[styles.largeMetricCard, { backgroundColor: colors.surface }]}>
+          <Text style={[styles.largeMetricLabel, { color: colors.textSecondary }]}>Total Events</Text>
+          <Text style={[styles.largeMetricValue, { color: colors.text }]}>
             {formatNumber(data.firewallEvents.total)}
           </Text>
         </View>
 
         {/* Firewall Events Breakdown */}
         <View style={styles.metricsGrid}>
-          <View style={[styles.smallMetricCard, styles.blockedCard]}>
-            <Text style={[styles.smallMetricValue, styles.blockedText]}>
+          <View style={[styles.smallMetricCard, { backgroundColor: colors.error + '20' }]}>
+            <Text style={[styles.smallMetricValue, { color: colors.error }]}>
               {formatNumber(data.firewallEvents.blocked)}
             </Text>
-            <Text style={styles.smallMetricLabel}>Blocked</Text>
+            <Text style={[styles.smallMetricLabel, { color: colors.textSecondary }]}>Blocked</Text>
           </View>
-          <View style={[styles.smallMetricCard, styles.challengedCard]}>
-            <Text style={[styles.smallMetricValue, styles.challengedText]}>
+          <View style={[styles.smallMetricCard, { backgroundColor: colors.warning + '20' }]}>
+            <Text style={[styles.smallMetricValue, { color: colors.warning }]}>
               {formatNumber(data.firewallEvents.challenged)}
             </Text>
-            <Text style={styles.smallMetricLabel}>Challenged</Text>
+            <Text style={[styles.smallMetricLabel, { color: colors.textSecondary }]}>Challenged</Text>
           </View>
-          <View style={[styles.smallMetricCard, styles.allowedCard]}>
-            <Text style={[styles.smallMetricValue, styles.allowedText]}>
+          <View style={[styles.smallMetricCard, { backgroundColor: colors.success + '20' }]}>
+            <Text style={[styles.smallMetricValue, { color: colors.success }]}>
               {formatNumber(data.firewallEvents.allowed)}
             </Text>
-            <Text style={styles.smallMetricLabel}>Allowed</Text>
+            <Text style={[styles.smallMetricLabel, { color: colors.textSecondary }]}>Allowed</Text>
           </View>
         </View>
       </View>
 
       {/* Bot Score Section - Requirement 4.4 */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Bot Detection</Text>
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>Bot Detection</Text>
         
         <View style={[
           styles.largeMetricCard,
-          botScoreHigh && styles.highScoreCard
+          { backgroundColor: colors.surface },
+          botScoreHigh && { borderWidth: 2, borderColor: colors.error, backgroundColor: colors.error + '10' }
         ]}>
           <View style={styles.scoreHeader}>
-            <Text style={styles.largeMetricLabel}>Average Bot Score</Text>
+            <Text style={[styles.largeMetricLabel, { color: colors.textSecondary }]}>Average Bot Score</Text>
             {botScoreHigh && (
-              <View style={styles.warningBadge}>
+              <View style={[styles.warningBadge, { backgroundColor: colors.error }]}>
                 <Text style={styles.warningBadgeText}>⚠️ HIGH</Text>
               </View>
             )}
           </View>
           <Text style={[
             styles.largeMetricValue,
-            botScoreHigh && styles.highScoreText
+            { color: botScoreHigh ? colors.error : colors.text }
           ]}>
             {data.botScore.average.toFixed(1)}
           </Text>
-          <Text style={styles.scoreSubtext}>
+          <Text style={[styles.scoreSubtext, { color: colors.textDisabled }]}>
             Score range: 0 (human) - 100 (bot)
           </Text>
         </View>
 
         {/* Bot Score Distribution */}
         {data.botScore.distribution.length > 0 && (
-          <View style={styles.distributionContainer}>
-            <Text style={styles.distributionTitle}>Distribution by Range</Text>
+          <View style={[styles.distributionContainer, { backgroundColor: colors.surface }]}>
+            <Text style={[styles.distributionTitle, { color: colors.textSecondary }]}>Distribution by Range</Text>
             {data.botScore.distribution.map((item, index) => (
-              <View key={index} style={styles.distributionItem}>
-                <Text style={styles.distributionRange}>{item.range}</Text>
-                <Text style={styles.distributionCount}>
+              <View key={index} style={[styles.distributionItem, { borderBottomColor: colors.border }]}>
+                <Text style={[styles.distributionRange, { color: colors.text }]}>{item.range}</Text>
+                <Text style={[styles.distributionCount, { color: colors.textSecondary }]}>
                   {formatNumber(item.count)} requests
                 </Text>
               </View>
@@ -397,50 +400,51 @@ export default function SecurityScreen({ zoneId, zoneName = 'Unknown Zone' }: Se
 
       {/* Threat Score Section - Requirement 4.4 */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Threat Analysis</Text>
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>Threat Analysis</Text>
         
         <View style={[
           styles.largeMetricCard,
-          threatScoreHigh && styles.highScoreCard
+          { backgroundColor: colors.surface },
+          threatScoreHigh && { borderWidth: 2, borderColor: colors.error, backgroundColor: colors.error + '10' }
         ]}>
           <View style={styles.scoreHeader}>
-            <Text style={styles.largeMetricLabel}>Average Threat Score</Text>
+            <Text style={[styles.largeMetricLabel, { color: colors.textSecondary }]}>Average Threat Score</Text>
             {threatScoreHigh && (
-              <View style={styles.warningBadge}>
+              <View style={[styles.warningBadge, { backgroundColor: colors.error }]}>
                 <Text style={styles.warningBadgeText}>⚠️ HIGH</Text>
               </View>
             )}
           </View>
           <Text style={[
             styles.largeMetricValue,
-            threatScoreHigh && styles.highScoreText
+            { color: threatScoreHigh ? colors.error : colors.text }
           ]}>
             {data.threatScore.average.toFixed(1)}
           </Text>
-          <Text style={styles.scoreSubtext}>
+          <Text style={[styles.scoreSubtext, { color: colors.textDisabled }]}>
             Score range: 0 (safe) - 100 (threat)
           </Text>
         </View>
 
         {/* Threat Score Breakdown */}
         <View style={styles.metricsGrid}>
-          <View style={[styles.smallMetricCard, styles.highThreatCard]}>
-            <Text style={[styles.smallMetricValue, styles.highThreatText]}>
+          <View style={[styles.smallMetricCard, { backgroundColor: colors.error + '20' }]}>
+            <Text style={[styles.smallMetricValue, { color: colors.error }]}>
               {formatNumber(data.threatScore.high)}
             </Text>
-            <Text style={styles.smallMetricLabel}>High (&gt;80)</Text>
+            <Text style={[styles.smallMetricLabel, { color: colors.textSecondary }]}>High (&gt;80)</Text>
           </View>
-          <View style={[styles.smallMetricCard, styles.mediumThreatCard]}>
-            <Text style={[styles.smallMetricValue, styles.mediumThreatText]}>
+          <View style={[styles.smallMetricCard, { backgroundColor: colors.warning + '20' }]}>
+            <Text style={[styles.smallMetricValue, { color: colors.warning }]}>
               {formatNumber(data.threatScore.medium)}
             </Text>
-            <Text style={styles.smallMetricLabel}>Medium (40-80)</Text>
+            <Text style={[styles.smallMetricLabel, { color: colors.textSecondary }]}>Medium (40-80)</Text>
           </View>
-          <View style={[styles.smallMetricCard, styles.lowThreatCard]}>
-            <Text style={[styles.smallMetricValue, styles.lowThreatText]}>
+          <View style={[styles.smallMetricCard, { backgroundColor: colors.success + '20' }]}>
+            <Text style={[styles.smallMetricValue, { color: colors.success }]}>
               {formatNumber(data.threatScore.low)}
             </Text>
-            <Text style={styles.smallMetricLabel}>Low (&lt;40)</Text>
+            <Text style={[styles.smallMetricLabel, { color: colors.textSecondary }]}>Low (&lt;40)</Text>
           </View>
         </View>
       </View>
@@ -451,8 +455,8 @@ export default function SecurityScreen({ zoneId, zoneName = 'Unknown Zone' }: Se
       )}
 
       {/* Info Section */}
-      <View style={styles.infoSection}>
-        <Text style={styles.infoText}>
+      <View style={[styles.infoSection, { backgroundColor: colors.surface }]}>
+        <Text style={[styles.infoText, { color: colors.textSecondary }]}>
           Pull down to refresh data. High bot and threat scores (&gt;80) are highlighted for attention.
         </Text>
       </View>
@@ -463,7 +467,6 @@ export default function SecurityScreen({ zoneId, zoneName = 'Unknown Zone' }: Se
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
   },
   contentContainer: {
     padding: 16,
@@ -476,7 +479,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
-    backgroundColor: '#f5f5f5',
   },
   header: {
     marginBottom: 20,
@@ -490,7 +492,6 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   exportButton: {
-    backgroundColor: '#f6821f',
     paddingHorizontal: 16,
     paddingVertical: 10,
     borderRadius: 8,
@@ -506,7 +507,6 @@ const styles = StyleSheet.create({
   },
   timeRangeSelector: {
     flexDirection: 'row',
-    backgroundColor: '#fff',
     borderRadius: 8,
     padding: 4,
     marginTop: 12,
@@ -522,64 +522,47 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderRadius: 6,
   },
-  timeRangeButtonActive: {
-    backgroundColor: '#f6821f',
-  },
   timeRangeButtonText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#666',
-  },
-  timeRangeButtonTextActive: {
-    color: '#fff',
   },
   title: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#333',
     marginBottom: 4,
   },
   lastUpdate: {
     fontSize: 14,
-    color: '#666',
     marginTop: 4,
   },
   cacheIndicator: {
     fontSize: 13,
-    color: '#f6821f',
     marginTop: 4,
   },
   loadingText: {
     marginTop: 12,
     fontSize: 16,
-    color: '#666',
   },
   errorTitle: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#e74c3c',
     marginBottom: 8,
   },
   errorMessage: {
     fontSize: 16,
-    color: '#666',
     textAlign: 'center',
     marginBottom: 20,
   },
   errorBanner: {
-    backgroundColor: '#fff3cd',
     borderRadius: 8,
     padding: 12,
     marginBottom: 16,
     borderLeftWidth: 4,
-    borderLeftColor: '#f6821f',
   },
   errorBannerText: {
     fontSize: 14,
-    color: '#856404',
   },
   retryButton: {
-    backgroundColor: '#f6821f',
     paddingHorizontal: 24,
     paddingVertical: 12,
     borderRadius: 8,
@@ -595,11 +578,9 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#333',
     marginBottom: 12,
   },
   largeMetricCard: {
-    backgroundColor: '#fff',
     borderRadius: 12,
     padding: 20,
     marginBottom: 12,
@@ -611,26 +592,22 @@ const styles = StyleSheet.create({
   },
   largeMetricLabel: {
     fontSize: 16,
-    color: '#666',
     marginBottom: 8,
     fontWeight: '500',
   },
   largeMetricValue: {
     fontSize: 36,
     fontWeight: 'bold',
-    color: '#333',
     marginBottom: 8,
   },
   progressBar: {
     height: 8,
-    backgroundColor: '#e0e0e0',
     borderRadius: 4,
     overflow: 'hidden',
     marginTop: 8,
   },
   progressFill: {
     height: '100%',
-    backgroundColor: '#27ae60',
     borderRadius: 4,
   },
   metricsGrid: {
@@ -641,47 +618,17 @@ const styles = StyleSheet.create({
   smallMetricCard: {
     width: '33.33%',
     padding: 6,
+    borderRadius: 8,
   },
   smallMetricValue: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#333',
     marginBottom: 4,
     textAlign: 'center',
   },
   smallMetricLabel: {
     fontSize: 12,
-    color: '#666',
     textAlign: 'center',
-  },
-  blockedCard: {
-    backgroundColor: '#ffebee',
-    borderRadius: 8,
-    padding: 12,
-  },
-  blockedText: {
-    color: '#c62828',
-  },
-  challengedCard: {
-    backgroundColor: '#fff3e0',
-    borderRadius: 8,
-    padding: 12,
-  },
-  challengedText: {
-    color: '#ef6c00',
-  },
-  allowedCard: {
-    backgroundColor: '#e8f5e9',
-    borderRadius: 8,
-    padding: 12,
-  },
-  allowedText: {
-    color: '#2e7d32',
-  },
-  highScoreCard: {
-    borderWidth: 2,
-    borderColor: '#e74c3c',
-    backgroundColor: '#ffebee',
   },
   scoreHeader: {
     flexDirection: 'row',
@@ -690,7 +637,6 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   warningBadge: {
-    backgroundColor: '#e74c3c',
     paddingHorizontal: 12,
     paddingVertical: 4,
     borderRadius: 12,
@@ -700,16 +646,11 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: 'bold',
   },
-  highScoreText: {
-    color: '#e74c3c',
-  },
   scoreSubtext: {
     fontSize: 12,
-    color: '#999',
     fontStyle: 'italic',
   },
   distributionContainer: {
-    backgroundColor: '#fff',
     borderRadius: 12,
     padding: 16,
     shadowColor: '#000',
@@ -721,7 +662,6 @@ const styles = StyleSheet.create({
   distributionTitle: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#666',
     marginBottom: 12,
   },
   distributionItem: {
@@ -730,50 +670,21 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 8,
     borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
   },
   distributionRange: {
     fontSize: 14,
-    color: '#333',
     fontWeight: '500',
   },
   distributionCount: {
     fontSize: 14,
-    color: '#666',
-  },
-  highThreatCard: {
-    backgroundColor: '#ffebee',
-    borderRadius: 8,
-    padding: 12,
-  },
-  highThreatText: {
-    color: '#c62828',
-  },
-  mediumThreatCard: {
-    backgroundColor: '#fff3e0',
-    borderRadius: 8,
-    padding: 12,
-  },
-  mediumThreatText: {
-    color: '#ef6c00',
-  },
-  lowThreatCard: {
-    backgroundColor: '#e8f5e9',
-    borderRadius: 8,
-    padding: 12,
-  },
-  lowThreatText: {
-    color: '#2e7d32',
   },
   infoSection: {
     marginTop: 20,
     padding: 16,
-    backgroundColor: '#fff',
     borderRadius: 12,
   },
   infoText: {
     fontSize: 14,
-    color: '#666',
     textAlign: 'center',
     lineHeight: 20,
   },

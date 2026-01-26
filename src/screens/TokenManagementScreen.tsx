@@ -20,6 +20,7 @@ import {
   Keyboard,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { useTheme } from '../contexts/ThemeContext';
 import AuthManager from '../services/AuthManager';
 
 interface SavedToken {
@@ -34,6 +35,7 @@ interface TokenManagementScreenProps {
 
 export default function TokenManagementScreen({ onTokenSelected }: TokenManagementScreenProps) {
   const navigation = useNavigation();
+  const { colors } = useTheme();
   const [tokens, setTokens] = useState<SavedToken[]>([]);
   const [currentTokenId, setCurrentTokenId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -152,19 +154,19 @@ export default function TokenManagementScreen({ onTokenSelected }: TokenManageme
 
   if (isLoading) {
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#f97316" />
-        <Text style={styles.loadingText}>Loading tokens...</Text>
+      <View style={[styles.loadingContainer, { backgroundColor: colors.background }]}>
+        <ActivityIndicator size="large" color={colors.primary} />
+        <Text style={[styles.loadingText, { color: colors.textSecondary }]}>Loading tokens...</Text>
       </View>
     );
   }
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
       {/* Header */}
-      <View style={styles.header}>
-        <Text style={styles.title}>Token 管理</Text>
-        <Text style={styles.subtitle}>
+      <View style={[styles.header, { backgroundColor: colors.surface, borderBottomColor: colors.border }]}>
+        <Text style={[styles.title, { color: colors.text }]}>Token 管理</Text>
+        <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
           {tokens.length === 0 ? '还没有保存的tokens' : `${tokens.length} 个已保存的tokens`}
         </Text>
       </View>
@@ -173,36 +175,36 @@ export default function TokenManagementScreen({ onTokenSelected }: TokenManageme
       <ScrollView style={styles.listContainer}>
         {tokens.length === 0 ? (
           <View style={styles.emptyContainer}>
-            <Text style={styles.emptyText}>还没有保存的tokens</Text>
-            <Text style={styles.emptySubtext}>点击下方按钮添加第一个token</Text>
+            <Text style={[styles.emptyText, { color: colors.textSecondary }]}>还没有保存的tokens</Text>
+            <Text style={[styles.emptySubtext, { color: colors.textDisabled }]}>点击下方按钮添加第一个token</Text>
           </View>
         ) : (
           tokens.map((token) => (
-            <View key={token.id} style={styles.tokenCard}>
+            <View key={token.id} style={[styles.tokenCard, { backgroundColor: colors.surface }]}>
               <TouchableOpacity
                 style={styles.tokenCardContent}
                 onPress={() => handleSelectToken(token.id)}
               >
                 <View style={styles.tokenInfo}>
                   <View style={styles.tokenHeader}>
-                    <Text style={styles.tokenLabel}>{token.label}</Text>
+                    <Text style={[styles.tokenLabel, { color: colors.text }]}>{token.label}</Text>
                     {token.id === currentTokenId && (
-                      <View style={styles.currentBadge}>
+                      <View style={[styles.currentBadge, { backgroundColor: colors.primary }]}>
                         <Text style={styles.currentBadgeText}>当前</Text>
                       </View>
                     )}
                   </View>
-                  <Text style={styles.tokenDate}>
+                  <Text style={[styles.tokenDate, { color: colors.textDisabled }]}>
                     添加于: {new Date(token.createdAt).toLocaleDateString('zh-CN')}
                   </Text>
                 </View>
-                <Text style={styles.arrow}>›</Text>
+                <Text style={[styles.arrow, { color: colors.textDisabled }]}>›</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={styles.deleteButton}
+                style={[styles.deleteButton, { backgroundColor: colors.error + '20', borderTopColor: colors.error + '40' }]}
                 onPress={() => handleDeleteToken(token.id, token.label)}
               >
-                <Text style={styles.deleteButtonText}>删除</Text>
+                <Text style={[styles.deleteButtonText, { color: colors.error }]}>删除</Text>
               </TouchableOpacity>
             </View>
           ))
@@ -210,9 +212,9 @@ export default function TokenManagementScreen({ onTokenSelected }: TokenManageme
       </ScrollView>
 
       {/* Add Token Button */}
-      <View style={styles.footer}>
+      <View style={[styles.footer, { backgroundColor: colors.surface, borderTopColor: colors.border }]}>
         <TouchableOpacity
-          style={styles.addButton}
+          style={[styles.addButton, { backgroundColor: colors.primary }]}
           onPress={() => setShowAddModal(true)}
         >
           <Text style={styles.addButtonText}>+ 添加新Token</Text>
@@ -233,28 +235,30 @@ export default function TokenManagementScreen({ onTokenSelected }: TokenManageme
           <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
             <View style={styles.modalOverlay}>
               <TouchableWithoutFeedback onPress={(e) => e.stopPropagation()}>
-                <View style={styles.modalContent}>
-                  <Text style={styles.modalTitle}>添加新Token</Text>
+                <View style={[styles.modalContent, { backgroundColor: colors.surface }]}>
+                  <Text style={[styles.modalTitle, { color: colors.text }]}>添加新Token</Text>
                   
                   <ScrollView 
                     keyboardShouldPersistTaps="handled"
                     showsVerticalScrollIndicator={false}
                     style={styles.modalScrollView}
                   >
-                    <Text style={styles.inputLabel}>Token 标签</Text>
+                    <Text style={[styles.inputLabel, { color: colors.text }]}>Token 标签</Text>
                     <TextInput
-                      style={styles.input}
+                      style={[styles.input, { borderColor: colors.border, backgroundColor: colors.surface, color: colors.text }]}
                       placeholder="例如: 生产环境, 测试环境"
+                      placeholderTextColor={colors.textDisabled}
                       value={newTokenLabel}
                       onChangeText={setNewTokenLabel}
                       editable={!isValidating}
                       returnKeyType="next"
                     />
 
-                    <Text style={styles.inputLabel}>API Token</Text>
+                    <Text style={[styles.inputLabel, { color: colors.text }]}>API Token</Text>
                     <TextInput
-                      style={[styles.input, styles.tokenInput]}
+                      style={[styles.input, styles.tokenInput, { borderColor: colors.border, backgroundColor: colors.surface, color: colors.text }]}
                       placeholder="输入 Cloudflare API Token"
+                      placeholderTextColor={colors.textDisabled}
                       value={newToken}
                       onChangeText={setNewToken}
                       secureTextEntry
@@ -264,13 +268,12 @@ export default function TokenManagementScreen({ onTokenSelected }: TokenManageme
                       multiline
                       numberOfLines={4}
                       returnKeyType="done"
-                      blurOnSubmit={true}
                     />
                   </ScrollView>
 
                   <View style={styles.modalButtons}>
                     <TouchableOpacity
-                      style={[styles.modalButton, styles.cancelButton]}
+                      style={[styles.modalButton, styles.cancelButton, { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border }]}
                       onPress={() => {
                         Keyboard.dismiss();
                         setShowAddModal(false);
@@ -279,11 +282,11 @@ export default function TokenManagementScreen({ onTokenSelected }: TokenManageme
                       }}
                       disabled={isValidating}
                     >
-                      <Text style={styles.cancelButtonText}>取消</Text>
+                      <Text style={[styles.cancelButtonText, { color: colors.textSecondary }]}>取消</Text>
                     </TouchableOpacity>
                     
                     <TouchableOpacity
-                      style={[styles.modalButton, styles.confirmButton]}
+                      style={[styles.modalButton, styles.confirmButton, { backgroundColor: colors.primary }]}
                       onPress={() => {
                         Keyboard.dismiss();
                         handleAddToken();
@@ -308,38 +311,6 @@ export default function TokenManagementScreen({ onTokenSelected }: TokenManageme
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#f5f5f5',
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#f5f5f5',
-  },
-  loadingText: {
-    marginTop: 12,
-    fontSize: 16,
-    color: '#666',
-  },
-  header: {
-    backgroundColor: '#fff',
-    padding: 20,
-    paddingTop: 60,
-    borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#333',
-    marginBottom: 8,
-  },
-  subtitle: {
-    fontSize: 16,
-    color: '#666',
-  },
   listContainer: {
     flex: 1,
     padding: 12,
@@ -351,18 +322,7 @@ const styles = StyleSheet.create({
     padding: 40,
     marginTop: 60,
   },
-  emptyText: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#666',
-    marginBottom: 8,
-  },
-  emptySubtext: {
-    fontSize: 14,
-    color: '#999',
-  },
   tokenCard: {
-    backgroundColor: '#fff',
     borderRadius: 12,
     marginBottom: 12,
     shadowColor: '#000',
@@ -386,14 +346,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 6,
   },
-  tokenLabel: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#333',
-    marginRight: 8,
-  },
   currentBadge: {
-    backgroundColor: '#f97316',
     paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: 4,
@@ -403,35 +356,20 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '600',
   },
-  tokenDate: {
-    fontSize: 13,
-    color: '#999',
-  },
   arrow: {
     fontSize: 32,
-    color: '#ccc',
     marginLeft: 12,
   },
   deleteButton: {
-    backgroundColor: '#fee',
     padding: 12,
     alignItems: 'center',
     borderTopWidth: 1,
-    borderTopColor: '#fdd',
-  },
-  deleteButtonText: {
-    color: '#e74c3c',
-    fontSize: 14,
-    fontWeight: '600',
   },
   footer: {
     padding: 16,
-    backgroundColor: '#fff',
     borderTopWidth: 1,
-    borderTopColor: '#e0e0e0',
   },
   addButton: {
-    backgroundColor: '#f97316',
     padding: 16,
     borderRadius: 8,
     alignItems: 'center',
@@ -452,7 +390,6 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   modalContent: {
-    backgroundColor: '#fff',
     borderRadius: 12,
     padding: 24,
     width: '100%',
@@ -462,26 +399,11 @@ const styles = StyleSheet.create({
   modalScrollView: {
     maxHeight: 300,
   },
-  modalTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#333',
-    marginBottom: 20,
-  },
-  inputLabel: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#333',
-    marginBottom: 8,
-    marginTop: 12,
-  },
   input: {
     borderWidth: 1,
-    borderColor: '#ddd',
     borderRadius: 8,
     padding: 12,
     fontSize: 16,
-    backgroundColor: '#fff',
   },
   tokenInput: {
     minHeight: 100,
@@ -500,15 +422,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   cancelButton: {
-    backgroundColor: '#f0f0f0',
-  },
-  cancelButtonText: {
-    color: '#666',
-    fontSize: 16,
-    fontWeight: '600',
   },
   confirmButton: {
-    backgroundColor: '#f97316',
   },
   confirmButtonText: {
     color: '#fff',

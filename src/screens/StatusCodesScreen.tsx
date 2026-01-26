@@ -21,6 +21,7 @@ import { useZone } from '../contexts';
 import { MetricsQueryParams } from '../types';
 import { PieChart, PieChartDataItem, ZoneSelector } from '../components';
 import { ExportManager } from '../services';
+import { useTheme } from '../contexts/ThemeContext';
 
 interface StatusCodesScreenProps {
   zoneId?: string;
@@ -37,6 +38,7 @@ const STATUS_COLORS = {
 };
 
 export default function StatusCodesScreen({ zoneId: propZoneId, zoneName: propZoneName }: StatusCodesScreenProps) {
+  const { colors } = useTheme();
   // Get zoneId and zoneName from context if not provided as props
   const { zoneId: contextZoneId, zoneName: contextZoneName } = useZone();
   const zoneId = propZoneId || contextZoneId;
@@ -45,9 +47,9 @@ export default function StatusCodesScreen({ zoneId: propZoneId, zoneName: propZo
   // If no zone is selected, show message
   if (!zoneId) {
     return (
-      <View style={styles.centerContainer}>
-        <Text style={styles.errorTitle}>No Zone Selected</Text>
-        <Text style={styles.errorMessage}>
+      <View style={[styles.centerContainer, { backgroundColor: colors.background }]}>
+        <Text style={[styles.errorTitle, { color: colors.error }]}>No Zone Selected</Text>
+        <Text style={[styles.errorMessage, { color: colors.textSecondary }]}>
           Please select a zone from the account/zone selection screen to view status codes.
         </Text>
         <ZoneSelector />
@@ -267,10 +269,10 @@ export default function StatusCodesScreen({ zoneId: propZoneId, zoneName: propZo
         onPress={() => setSelectedCategory(isSelected ? null : category)}
       >
         <View style={[styles.categoryIndicator, { backgroundColor: color }]} />
-        <View style={styles.categoryContent}>
-          <Text style={styles.categoryTitle}>{title}</Text>
-          <Text style={styles.categoryValue}>{formatNumber(value)}</Text>
-          <Text style={styles.categoryPercentage}>{percentage}</Text>
+        <View style={[styles.categoryContent, { backgroundColor: colors.surface }]}>
+          <Text style={[styles.categoryTitle, { color: colors.textSecondary }]}>{title}</Text>
+          <Text style={[styles.categoryValue, { color: colors.text }]}>{formatNumber(value)}</Text>
+          <Text style={[styles.categoryPercentage, { color: colors.textDisabled }]}>{percentage}</Text>
         </View>
       </TouchableOpacity>
     );
@@ -285,14 +287,14 @@ export default function StatusCodesScreen({ zoneId: propZoneId, zoneName: propZo
     const description = getStatusCodeDescription(item.code);
 
     return (
-      <View style={styles.breakdownItem}>
+      <View style={[styles.breakdownItem, { borderBottomColor: colors.border }]}>
         <View style={styles.breakdownLeft}>
-          <Text style={styles.breakdownCode}>{item.code}</Text>
-          <Text style={styles.breakdownDescription}>{description}</Text>
+          <Text style={[styles.breakdownCode, { color: colors.text }]}>{item.code}</Text>
+          <Text style={[styles.breakdownDescription, { color: colors.textSecondary }]}>{description}</Text>
         </View>
         <View style={styles.breakdownRight}>
-          <Text style={styles.breakdownCount}>{formatNumber(item.count)}</Text>
-          <Text style={styles.breakdownPercentage}>{percentage}</Text>
+          <Text style={[styles.breakdownCount, { color: colors.text }]}>{formatNumber(item.count)}</Text>
+          <Text style={[styles.breakdownPercentage, { color: colors.textDisabled }]}>{percentage}</Text>
         </View>
       </View>
     );
@@ -303,9 +305,9 @@ export default function StatusCodesScreen({ zoneId: propZoneId, zoneName: propZo
    */
   if (loading && !data) {
     return (
-      <View style={styles.centerContainer}>
-        <ActivityIndicator size="large" color="#f6821f" />
-        <Text style={styles.loadingText}>Loading status codes...</Text>
+      <View style={[styles.centerContainer, { backgroundColor: colors.background }]}>
+        <ActivityIndicator size="large" color={colors.primary} />
+        <Text style={[styles.loadingText, { color: colors.textSecondary }]}>Loading status codes...</Text>
       </View>
     );
   }
@@ -315,10 +317,10 @@ export default function StatusCodesScreen({ zoneId: propZoneId, zoneName: propZo
    */
   if (error && !data) {
     return (
-      <View style={styles.centerContainer}>
-        <Text style={styles.errorTitle}>Unable to Load Data</Text>
-        <Text style={styles.errorMessage}>{error}</Text>
-        <TouchableOpacity style={styles.retryButton} onPress={handleRefresh}>
+      <View style={[styles.centerContainer, { backgroundColor: colors.background }]}>
+        <Text style={[styles.errorTitle, { color: colors.error }]}>Unable to Load Data</Text>
+        <Text style={[styles.errorMessage, { color: colors.textSecondary }]}>{error}</Text>
+        <TouchableOpacity style={[styles.retryButton, { backgroundColor: colors.primary }]} onPress={handleRefresh}>
           <Text style={styles.retryButtonText}>Retry</Text>
         </TouchableOpacity>
       </View>
@@ -330,14 +332,14 @@ export default function StatusCodesScreen({ zoneId: propZoneId, zoneName: propZo
 
   return (
     <ScrollView
-      style={styles.container}
+      style={[styles.container, { backgroundColor: colors.background }]}
       contentContainerStyle={styles.contentContainer}
       refreshControl={
         <RefreshControl
           refreshing={refreshing}
           onRefresh={handleRefresh}
-          colors={['#f6821f']}
-          tintColor="#f6821f"
+          colors={[colors.primary]}
+          tintColor={colors.primary}
         />
       }
     >
@@ -350,18 +352,18 @@ export default function StatusCodesScreen({ zoneId: propZoneId, zoneName: propZo
       <View style={styles.header}>
         <View style={styles.headerTop}>
           <View style={styles.headerLeft}>
-            <Text style={styles.title}>HTTP Status Codes</Text>
+            <Text style={[styles.title, { color: colors.text }]}>HTTP Status Codes</Text>
             {lastRefreshTime && (
-              <Text style={styles.lastUpdate}>
+              <Text style={[styles.lastUpdate, { color: colors.textSecondary }]}>
                 Last updated: {lastRefreshTime.toLocaleTimeString()}
               </Text>
             )}
             {isFromCache && (
-              <Text style={styles.cacheIndicator}>📦 Showing cached data</Text>
+              <Text style={[styles.cacheIndicator, { color: colors.primary }]}>📦 Showing cached data</Text>
             )}
           </View>
           <TouchableOpacity
-            style={[styles.exportButton, exporting && styles.exportButtonDisabled]}
+            style={[styles.exportButton, { backgroundColor: colors.primary }, exporting && styles.exportButtonDisabled]}
             onPress={handleExport}
             disabled={exporting || !data}
           >
@@ -372,28 +374,28 @@ export default function StatusCodesScreen({ zoneId: propZoneId, zoneName: propZo
         </View>
 
         {/* Time Range Selector */}
-        <View style={styles.timeRangeSelector}>
+        <View style={[styles.timeRangeSelector, { backgroundColor: colors.surface }]}>
           <TouchableOpacity
-            style={[styles.timeRangeButton, timeRange === '24h' && styles.timeRangeButtonActive]}
+            style={[styles.timeRangeButton, timeRange === '24h' && { backgroundColor: colors.primary }]}
             onPress={() => setTimeRange('24h')}
           >
-            <Text style={[styles.timeRangeButtonText, timeRange === '24h' && styles.timeRangeButtonTextActive]}>
+            <Text style={[styles.timeRangeButtonText, { color: timeRange === '24h' ? '#fff' : colors.textSecondary }]}>
               24H
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
-            style={[styles.timeRangeButton, timeRange === '7d' && styles.timeRangeButtonActive]}
+            style={[styles.timeRangeButton, timeRange === '7d' && { backgroundColor: colors.primary }]}
             onPress={() => setTimeRange('7d')}
           >
-            <Text style={[styles.timeRangeButtonText, timeRange === '7d' && styles.timeRangeButtonTextActive]}>
+            <Text style={[styles.timeRangeButtonText, { color: timeRange === '7d' ? '#fff' : colors.textSecondary }]}>
               7D
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
-            style={[styles.timeRangeButton, timeRange === '30d' && styles.timeRangeButtonActive]}
+            style={[styles.timeRangeButton, timeRange === '30d' && { backgroundColor: colors.primary }]}
             onPress={() => setTimeRange('30d')}
           >
-            <Text style={[styles.timeRangeButtonText, timeRange === '30d' && styles.timeRangeButtonTextActive]}>
+            <Text style={[styles.timeRangeButtonText, { color: timeRange === '30d' ? '#fff' : colors.textSecondary }]}>
               30D
             </Text>
           </TouchableOpacity>
@@ -402,23 +404,23 @@ export default function StatusCodesScreen({ zoneId: propZoneId, zoneName: propZo
 
       {/* Error banner if partial data */}
       {error && data && (
-        <View style={styles.errorBanner}>
-          <Text style={styles.errorBannerText}>⚠️ {error}</Text>
+        <View style={[styles.errorBanner, { backgroundColor: colors.warning + '20', borderLeftColor: colors.primary }]}>
+          <Text style={[styles.errorBannerText, { color: colors.text }]}>⚠️ {error}</Text>
         </View>
       )}
 
       {/* Total Requests */}
       {data && (
-        <View style={styles.totalCard}>
-          <Text style={styles.totalLabel}>Total Requests</Text>
-          <Text style={styles.totalValue}>{formatNumber(data.total)}</Text>
+        <View style={[styles.totalCard, { backgroundColor: colors.surface }]}>
+          <Text style={[styles.totalLabel, { color: colors.textSecondary }]}>Total Requests</Text>
+          <Text style={[styles.totalValue, { color: colors.text }]}>{formatNumber(data.total)}</Text>
         </View>
       )}
 
       {/* Pie Chart */}
       {pieChartData.length > 0 && (
-        <View style={styles.chartSection}>
-          <Text style={styles.sectionTitle}>Distribution Overview</Text>
+        <View style={[styles.chartSection, { backgroundColor: colors.surface }]}>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>Distribution Overview</Text>
           <PieChart
             data={pieChartData}
             showPercentage={true}
@@ -430,7 +432,7 @@ export default function StatusCodesScreen({ zoneId: propZoneId, zoneName: propZo
       {/* Category Cards */}
       {data && (
         <View style={styles.categoriesSection}>
-          <Text style={styles.sectionTitle}>Categories</Text>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>Categories</Text>
           <View style={styles.categoriesGrid}>
             {renderCategoryCard('2xx Success', data.status2xx, STATUS_COLORS['2xx'], '2xx')}
             {renderCategoryCard('3xx Redirect', data.status3xx, STATUS_COLORS['3xx'], '3xx')}
@@ -442,11 +444,11 @@ export default function StatusCodesScreen({ zoneId: propZoneId, zoneName: propZo
 
       {/* Detailed Breakdown */}
       {selectedCategory && breakdownData.length > 0 && (
-        <View style={styles.breakdownSection}>
+        <View style={[styles.breakdownSection, { backgroundColor: colors.surface }]}>
           <View style={styles.breakdownHeader}>
-            <Text style={styles.sectionTitle}>{selectedCategory} Details</Text>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>{selectedCategory} Details</Text>
             <TouchableOpacity onPress={() => setSelectedCategory(null)}>
-              <Text style={styles.closeButton}>✕</Text>
+              <Text style={[styles.closeButton, { color: colors.textDisabled }]}>✕</Text>
             </TouchableOpacity>
           </View>
           <FlatList
@@ -459,8 +461,8 @@ export default function StatusCodesScreen({ zoneId: propZoneId, zoneName: propZo
       )}
 
       {/* Info Section */}
-      <View style={styles.infoSection}>
-        <Text style={styles.infoText}>
+      <View style={[styles.infoSection, { backgroundColor: colors.surface }]}>
+        <Text style={[styles.infoText, { color: colors.textSecondary }]}>
           Tap on a category card to view detailed status code breakdown.
           Pull down to refresh data.
         </Text>
@@ -472,7 +474,6 @@ export default function StatusCodesScreen({ zoneId: propZoneId, zoneName: propZo
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
   },
   contentContainer: {
     padding: 16,
@@ -485,7 +486,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
-    backgroundColor: '#f5f5f5',
   },
   header: {
     marginBottom: 20,
@@ -499,7 +499,6 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   exportButton: {
-    backgroundColor: '#f6821f',
     paddingHorizontal: 16,
     paddingVertical: 10,
     borderRadius: 8,
@@ -515,7 +514,6 @@ const styles = StyleSheet.create({
   },
   timeRangeSelector: {
     flexDirection: 'row',
-    backgroundColor: '#fff',
     borderRadius: 8,
     padding: 4,
     marginTop: 12,
@@ -531,64 +529,47 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderRadius: 6,
   },
-  timeRangeButtonActive: {
-    backgroundColor: '#f6821f',
-  },
   timeRangeButtonText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#666',
-  },
-  timeRangeButtonTextActive: {
-    color: '#fff',
   },
   title: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#333',
     marginBottom: 4,
   },
   lastUpdate: {
     fontSize: 14,
-    color: '#666',
     marginTop: 4,
   },
   cacheIndicator: {
     fontSize: 13,
-    color: '#f6821f',
     marginTop: 4,
   },
   loadingText: {
     marginTop: 12,
     fontSize: 16,
-    color: '#666',
   },
   errorTitle: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#e74c3c',
     marginBottom: 8,
   },
   errorMessage: {
     fontSize: 16,
-    color: '#666',
     textAlign: 'center',
     marginBottom: 20,
   },
   errorBanner: {
-    backgroundColor: '#fff3cd',
     borderRadius: 8,
     padding: 12,
     marginBottom: 16,
     borderLeftWidth: 4,
-    borderLeftColor: '#f6821f',
   },
   errorBannerText: {
     fontSize: 14,
-    color: '#856404',
   },
   retryButton: {
-    backgroundColor: '#f6821f',
     paddingHorizontal: 24,
     paddingVertical: 12,
     borderRadius: 8,
@@ -599,7 +580,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   totalCard: {
-    backgroundColor: '#fff',
     borderRadius: 12,
     padding: 20,
     marginBottom: 20,
@@ -612,16 +592,13 @@ const styles = StyleSheet.create({
   },
   totalLabel: {
     fontSize: 16,
-    color: '#666',
     marginBottom: 8,
   },
   totalValue: {
     fontSize: 32,
     fontWeight: 'bold',
-    color: '#333',
   },
   chartSection: {
-    backgroundColor: '#fff',
     borderRadius: 12,
     padding: 16,
     marginBottom: 20,
@@ -634,7 +611,6 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#333',
     marginBottom: 16,
   },
   categoriesSection: {
@@ -662,7 +638,6 @@ const styles = StyleSheet.create({
     borderBottomLeftRadius: 12,
   },
   categoryContent: {
-    backgroundColor: '#fff',
     borderRadius: 12,
     padding: 16,
     paddingLeft: 20,
@@ -674,22 +649,18 @@ const styles = StyleSheet.create({
   },
   categoryTitle: {
     fontSize: 14,
-    color: '#666',
     marginBottom: 8,
     fontWeight: '500',
   },
   categoryValue: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#333',
     marginBottom: 4,
   },
   categoryPercentage: {
     fontSize: 14,
-    color: '#999',
   },
   breakdownSection: {
-    backgroundColor: '#fff',
     borderRadius: 12,
     padding: 16,
     marginBottom: 20,
@@ -707,7 +678,6 @@ const styles = StyleSheet.create({
   },
   closeButton: {
     fontSize: 24,
-    color: '#999',
     fontWeight: 'bold',
   },
   breakdownItem: {
@@ -716,7 +686,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
   },
   breakdownLeft: {
     flex: 1,
@@ -724,12 +693,10 @@ const styles = StyleSheet.create({
   breakdownCode: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#333',
     marginBottom: 2,
   },
   breakdownDescription: {
     fontSize: 13,
-    color: '#666',
   },
   breakdownRight: {
     alignItems: 'flex-end',
@@ -737,22 +704,18 @@ const styles = StyleSheet.create({
   breakdownCount: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#333',
     marginBottom: 2,
   },
   breakdownPercentage: {
     fontSize: 13,
-    color: '#999',
   },
   infoSection: {
     marginTop: 20,
     padding: 16,
-    backgroundColor: '#fff',
     borderRadius: 12,
   },
   infoText: {
     fontSize: 14,
-    color: '#666',
     textAlign: 'center',
     lineHeight: 20,
   },

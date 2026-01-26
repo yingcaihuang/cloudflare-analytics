@@ -15,9 +15,11 @@ import {
   Alert as RNAlert,
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
+import { useTheme } from '../contexts/ThemeContext';
 import AlertMonitor, { Alert } from '../services/AlertMonitor';
 
 export default function AlertHistoryScreen() {
+  const { colors } = useTheme();
   const [alerts, setAlerts] = useState<Alert[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -136,29 +138,29 @@ export default function AlertHistoryScreen() {
 
   if (isLoading) {
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#f97316" />
-        <Text style={styles.loadingText}>加载中...</Text>
+      <View style={[styles.loadingContainer, { backgroundColor: colors.background }]}>
+        <ActivityIndicator size="large" color={colors.primary} />
+        <Text style={[styles.loadingText, { color: colors.textSecondary }]}>加载中...</Text>
       </View>
     );
   }
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
       {/* Header */}
-      <View style={styles.header}>
+      <View style={[styles.header, { backgroundColor: colors.surface, borderBottomColor: colors.border }]}>
         <View>
-          <Text style={styles.title}>告警历史</Text>
-          <Text style={styles.subtitle}>
+          <Text style={[styles.title, { color: colors.text }]}>告警历史</Text>
+          <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
             {alerts.length === 0 ? '还没有告警记录' : `共 ${alerts.length} 条告警`}
           </Text>
         </View>
         {alerts.length > 0 && (
           <TouchableOpacity
-            style={styles.clearButton}
+            style={[styles.clearButton, { backgroundColor: colors.error + '20' }]}
             onPress={handleClearHistory}
           >
-            <Text style={styles.clearButtonText}>清除</Text>
+            <Text style={[styles.clearButtonText, { color: colors.error }]}>清除</Text>
           </TouchableOpacity>
         )}
       </View>
@@ -170,15 +172,15 @@ export default function AlertHistoryScreen() {
           <RefreshControl
             refreshing={isRefreshing}
             onRefresh={handleRefresh}
-            tintColor="#f97316"
-            colors={['#f97316']}
+            tintColor={colors.primary}
+            colors={[colors.primary]}
           />
         }
       >
         {alerts.length === 0 ? (
           <View style={styles.emptyContainer}>
-            <Text style={styles.emptyText}>还没有告警记录</Text>
-            <Text style={styles.emptySubtext}>
+            <Text style={[styles.emptyText, { color: colors.textSecondary }]}>还没有告警记录</Text>
+            <Text style={[styles.emptySubtext, { color: colors.textDisabled }]}>
               当触发告警规则时，记录会显示在这里
             </Text>
           </View>
@@ -188,6 +190,7 @@ export default function AlertHistoryScreen() {
               key={alert.id}
               style={[
                 styles.alertCard,
+                { backgroundColor: colors.surface },
                 alert.acknowledged && styles.alertCardAcknowledged,
               ]}
             >
@@ -210,7 +213,7 @@ export default function AlertHistoryScreen() {
                       {getSeverityLabel(alert.severity)}
                     </Text>
                   </View>
-                  <Text style={styles.timestamp}>
+                  <Text style={[styles.timestamp, { color: colors.textDisabled }]}>
                     {formatDate(alert.triggeredAt)}
                   </Text>
                 </View>
@@ -218,7 +221,8 @@ export default function AlertHistoryScreen() {
                 <Text
                   style={[
                     styles.message,
-                    alert.acknowledged && styles.messageAcknowledged,
+                    { color: colors.text },
+                    alert.acknowledged && { color: colors.textDisabled },
                   ]}
                 >
                   {alert.message}
@@ -226,7 +230,7 @@ export default function AlertHistoryScreen() {
 
                 {!alert.acknowledged && (
                   <TouchableOpacity
-                    style={styles.acknowledgeButton}
+                    style={[styles.acknowledgeButton, { backgroundColor: colors.primary }]}
                     onPress={() => handleAcknowledge(alert.id)}
                   >
                     <Text style={styles.acknowledgeButtonText}>确认</Text>
@@ -234,8 +238,8 @@ export default function AlertHistoryScreen() {
                 )}
 
                 {alert.acknowledged && (
-                  <View style={styles.acknowledgedBadge}>
-                    <Text style={styles.acknowledgedBadgeText}>已确认</Text>
+                  <View style={[styles.acknowledgedBadge, { backgroundColor: colors.success + '20' }]}>
+                    <Text style={[styles.acknowledgedBadgeText, { color: colors.success }]}>已确认</Text>
                   </View>
                 )}
               </View>
@@ -248,52 +252,6 @@ export default function AlertHistoryScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#f5f5f5',
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#f5f5f5',
-  },
-  loadingText: {
-    marginTop: 12,
-    fontSize: 16,
-    color: '#666',
-  },
-  header: {
-    backgroundColor: '#fff',
-    padding: 20,
-    paddingTop: 60,
-    borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#333',
-    marginBottom: 8,
-  },
-  subtitle: {
-    fontSize: 16,
-    color: '#666',
-  },
-  clearButton: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    backgroundColor: '#fee',
-    borderRadius: 6,
-  },
-  clearButtonText: {
-    color: '#e74c3c',
-    fontSize: 14,
-    fontWeight: '600',
-  },
   listContainer: {
     flex: 1,
     padding: 12,
@@ -305,19 +263,7 @@ const styles = StyleSheet.create({
     padding: 40,
     marginTop: 60,
   },
-  emptyText: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#666',
-    marginBottom: 8,
-  },
-  emptySubtext: {
-    fontSize: 14,
-    color: '#999',
-    textAlign: 'center',
-  },
   alertCard: {
-    backgroundColor: '#fff',
     borderRadius: 12,
     marginBottom: 12,
     flexDirection: 'row',
@@ -354,24 +300,15 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '600',
   },
-  timestamp: {
-    fontSize: 12,
-    color: '#999',
-  },
   message: {
     fontSize: 14,
-    color: '#333',
     marginBottom: 12,
     lineHeight: 20,
-  },
-  messageAcknowledged: {
-    color: '#999',
   },
   acknowledgeButton: {
     alignSelf: 'flex-start',
     paddingHorizontal: 16,
     paddingVertical: 8,
-    backgroundColor: '#f97316',
     borderRadius: 6,
   },
   acknowledgeButtonText: {
@@ -383,12 +320,6 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
     paddingHorizontal: 12,
     paddingVertical: 6,
-    backgroundColor: '#e8f5e9',
     borderRadius: 6,
-  },
-  acknowledgedBadgeText: {
-    color: '#4caf50',
-    fontSize: 12,
-    fontWeight: '600',
   },
 });

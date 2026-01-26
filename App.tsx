@@ -20,7 +20,7 @@ import {
   AlertConfigScreen,
   AlertHistoryScreen,
 } from './src/screens';
-import { ZoneProvider, useZone } from './src/contexts';
+import { ZoneProvider, useZone, ThemeProvider } from './src/contexts';
 import { AuthManager } from './src/services';
 import { View, Text, ActivityIndicator, StyleSheet, TouchableOpacity } from 'react-native';
 
@@ -305,11 +305,13 @@ function AppNavigator() {
 export default function App() {
   return (
     <SafeAreaProvider>
-      <ZoneProvider>
-        <NavigationContainer>
-          <AppNavigator />
-        </NavigationContainer>
-      </ZoneProvider>
+      <ThemeProvider>
+        <ZoneProvider>
+          <NavigationContainer>
+            <AppNavigator />
+          </NavigationContainer>
+        </ZoneProvider>
+      </ThemeProvider>
     </SafeAreaProvider>
   );
 }

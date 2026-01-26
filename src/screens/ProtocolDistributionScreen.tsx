@@ -19,6 +19,7 @@ import { useProtocolDistribution } from '../hooks/useProtocolDistribution';
 import { useZone } from '../contexts/ZoneContext';
 import { MetricsQueryParams } from '../types';
 import { BarChart } from '../components';
+import { useTheme } from '../contexts/ThemeContext';
 
 interface ProtocolStats {
   name: string;
@@ -30,6 +31,7 @@ interface ProtocolStats {
 }
 
 export default function ProtocolDistributionScreen() {
+  const { colors } = useTheme();
   const { zoneId, accountTag } = useZone();
   const [refreshing, setRefreshing] = useState(false);
   const [timeRange, setTimeRange] = useState<'24h' | '7d' | '30d'>('24h');
@@ -184,9 +186,9 @@ export default function ProtocolDistributionScreen() {
    */
   if (loading && !data) {
     return (
-      <View style={styles.centerContainer}>
-        <ActivityIndicator size="large" color="#f6821f" />
-        <Text style={styles.loadingText}>Loading protocol distribution...</Text>
+      <View style={[styles.centerContainer, { backgroundColor: colors.background }]}>
+        <ActivityIndicator size="large" color={colors.primary} />
+        <Text style={[styles.loadingText, { color: colors.textSecondary }]}>Loading protocol distribution...</Text>
       </View>
     );
   }
@@ -196,10 +198,10 @@ export default function ProtocolDistributionScreen() {
    */
   if (error && !data) {
     return (
-      <View style={styles.centerContainer}>
-        <Text style={styles.errorTitle}>Unable to Load Data</Text>
-        <Text style={styles.errorMessage}>{error}</Text>
-        <TouchableOpacity style={styles.retryButton} onPress={handleRefresh}>
+      <View style={[styles.centerContainer, { backgroundColor: colors.background }]}>
+        <Text style={[styles.errorTitle, { color: colors.error }]}>Unable to Load Data</Text>
+        <Text style={[styles.errorMessage, { color: colors.textSecondary }]}>{error}</Text>
+        <TouchableOpacity style={[styles.retryButton, { backgroundColor: colors.primary }]} onPress={handleRefresh}>
           <Text style={styles.retryButtonText}>Retry</Text>
         </TouchableOpacity>
       </View>
@@ -211,7 +213,7 @@ export default function ProtocolDistributionScreen() {
   const screenWidth = Dimensions.get('window').width;
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.contentContainer}
@@ -219,47 +221,47 @@ export default function ProtocolDistributionScreen() {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={handleRefresh}
-            colors={['#f6821f']}
-            tintColor="#f6821f"
+            colors={[colors.primary]}
+            tintColor={colors.primary}
           />
         }
       >
         {/* Header */}
         <View style={styles.header}>
-          <Text style={styles.title}>Protocol Distribution</Text>
+          <Text style={[styles.title, { color: colors.text }]}>Protocol Distribution</Text>
           {lastRefreshTime && (
-            <Text style={styles.lastUpdate}>
+            <Text style={[styles.lastUpdate, { color: colors.textSecondary }]}>
               Last updated: {lastRefreshTime.toLocaleTimeString()}
             </Text>
           )}
           {isFromCache && (
-            <Text style={styles.cacheIndicator}>📦 Showing cached data</Text>
+            <Text style={[styles.cacheIndicator, { color: colors.primary }]}>📦 Showing cached data</Text>
           )}
         </View>
 
         {/* Time Range Selector */}
-        <View style={styles.timeRangeSelector}>
+        <View style={[styles.timeRangeSelector, { backgroundColor: colors.surface }]}>
           <TouchableOpacity
-            style={[styles.timeRangeButton, timeRange === '24h' && styles.timeRangeButtonActive]}
+            style={[styles.timeRangeButton, timeRange === '24h' && { backgroundColor: colors.primary }]}
             onPress={() => setTimeRange('24h')}
           >
-            <Text style={[styles.timeRangeButtonText, timeRange === '24h' && styles.timeRangeButtonTextActive]}>
+            <Text style={[styles.timeRangeButtonText, { color: timeRange === '24h' ? '#fff' : colors.textSecondary }]}>
               24H
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
-            style={[styles.timeRangeButton, timeRange === '7d' && styles.timeRangeButtonActive]}
+            style={[styles.timeRangeButton, timeRange === '7d' && { backgroundColor: colors.primary }]}
             onPress={() => setTimeRange('7d')}
           >
-            <Text style={[styles.timeRangeButtonText, timeRange === '7d' && styles.timeRangeButtonTextActive]}>
+            <Text style={[styles.timeRangeButtonText, { color: timeRange === '7d' ? '#fff' : colors.textSecondary }]}>
               7D
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
-            style={[styles.timeRangeButton, timeRange === '30d' && styles.timeRangeButtonActive]}
+            style={[styles.timeRangeButton, timeRange === '30d' && { backgroundColor: colors.primary }]}
             onPress={() => setTimeRange('30d')}
           >
-            <Text style={[styles.timeRangeButtonText, timeRange === '30d' && styles.timeRangeButtonTextActive]}>
+            <Text style={[styles.timeRangeButtonText, { color: timeRange === '30d' ? '#fff' : colors.textSecondary }]}>
               30D
             </Text>
           </TouchableOpacity>
@@ -267,18 +269,18 @@ export default function ProtocolDistributionScreen() {
 
         {/* Error banner if partial data */}
         {error && data && (
-          <View style={styles.errorBanner}>
-            <Text style={styles.errorBannerText}>⚠️ {error}</Text>
+          <View style={[styles.errorBanner, { backgroundColor: colors.warning + '20', borderLeftColor: colors.warning }]}>
+            <Text style={[styles.errorBannerText, { color: colors.text }]}>⚠️ {error}</Text>
           </View>
         )}
 
         {/* HTTP/3 Low Usage Warning */}
         {showHttp3Warning && (
-          <View style={styles.warningBanner}>
+          <View style={[styles.warningBanner, { backgroundColor: colors.info + '20', borderLeftColor: colors.info }]}>
             <Text style={styles.warningIcon}>💡</Text>
             <View style={styles.warningContent}>
-              <Text style={styles.warningTitle}>HTTP/3 Usage is Low</Text>
-              <Text style={styles.warningText}>
+              <Text style={[styles.warningTitle, { color: colors.text }]}>HTTP/3 Usage is Low</Text>
+              <Text style={[styles.warningText, { color: colors.textSecondary }]}>
                 HTTP/3 traffic is below 10%. Consider enabling HTTP/3 in your Cloudflare settings for improved performance.
               </Text>
             </View>
@@ -287,16 +289,16 @@ export default function ProtocolDistributionScreen() {
 
         {/* Summary Card */}
         {data && (
-          <View style={styles.summaryCard}>
-            <Text style={styles.summaryLabel}>Total Requests</Text>
-            <Text style={styles.summaryValue}>{formatNumber(data.total)}</Text>
+          <View style={[styles.summaryCard, { backgroundColor: colors.surface }]}>
+            <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>Total Requests</Text>
+            <Text style={[styles.summaryValue, { color: colors.text }]}>{formatNumber(data.total)}</Text>
           </View>
         )}
 
         {/* Bar Chart */}
         {data && data.total > 0 && (
-          <View style={styles.chartSection}>
-            <Text style={styles.sectionTitle}>Protocol Distribution</Text>
+          <View style={[styles.chartSection, { backgroundColor: colors.surface }]}>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>Protocol Distribution</Text>
             <View style={styles.chartContainer}>
               <BarChart
                 labels={getChartData().labels}
@@ -314,31 +316,31 @@ export default function ProtocolDistributionScreen() {
         {/* Protocol Details List */}
         {protocolStats.length > 0 && (
           <View style={styles.detailsSection}>
-            <Text style={styles.sectionTitle}>Protocol Details</Text>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>Protocol Details</Text>
             {protocolStats.map((protocol) => (
-              <View key={protocol.version} style={styles.protocolCard}>
+              <View key={protocol.version} style={[styles.protocolCard, { backgroundColor: colors.surface }]}>
                 <View style={styles.protocolHeader}>
                   <View style={styles.protocolTitleRow}>
                     <View style={[styles.colorIndicator, { backgroundColor: protocol.color }]} />
-                    <Text style={styles.protocolName}>{protocol.name}</Text>
+                    <Text style={[styles.protocolName, { color: colors.text }]}>{protocol.name}</Text>
                   </View>
-                  <Text style={styles.protocolPercentage}>
+                  <Text style={[styles.protocolPercentage, { color: colors.primary }]}>
                     {formatPercentage(protocol.percentage)}
                   </Text>
                 </View>
-                <Text style={styles.protocolDescription}>{protocol.description}</Text>
+                <Text style={[styles.protocolDescription, { color: colors.textSecondary }]}>{protocol.description}</Text>
                 <View style={styles.protocolStats}>
                   <View style={styles.protocolStatItem}>
-                    <Text style={styles.protocolStatLabel}>Requests</Text>
-                    <Text style={styles.protocolStatValue}>{formatNumber(protocol.requests)}</Text>
+                    <Text style={[styles.protocolStatLabel, { color: colors.textDisabled }]}>Requests</Text>
+                    <Text style={[styles.protocolStatValue, { color: colors.text }]}>{formatNumber(protocol.requests)}</Text>
                   </View>
                   <View style={styles.protocolStatItem}>
-                    <Text style={styles.protocolStatLabel}>Percentage</Text>
-                    <Text style={styles.protocolStatValue}>{formatPercentage(protocol.percentage)}</Text>
+                    <Text style={[styles.protocolStatLabel, { color: colors.textDisabled }]}>Percentage</Text>
+                    <Text style={[styles.protocolStatValue, { color: colors.text }]}>{formatPercentage(protocol.percentage)}</Text>
                   </View>
                 </View>
                 {/* Progress bar */}
-                <View style={styles.progressBarContainer}>
+                <View style={[styles.progressBarContainer, { backgroundColor: colors.border }]}>
                   <View
                     style={[
                       styles.progressBar,
@@ -356,15 +358,15 @@ export default function ProtocolDistributionScreen() {
 
         {/* Empty State */}
         {data && data.total === 0 && (
-          <View style={styles.emptyState}>
-            <Text style={styles.emptyStateText}>No protocol data available</Text>
+          <View style={[styles.emptyState, { backgroundColor: colors.surface }]}>
+            <Text style={[styles.emptyStateText, { color: colors.textDisabled }]}>No protocol data available</Text>
           </View>
         )}
 
         {/* Info Section */}
-        <View style={styles.infoSection}>
-          <Text style={styles.infoTitle}>About HTTP Protocols</Text>
-          <Text style={styles.infoText}>
+        <View style={[styles.infoSection, { backgroundColor: colors.surface }]}>
+          <Text style={[styles.infoTitle, { color: colors.text }]}>About HTTP Protocols</Text>
+          <Text style={[styles.infoText, { color: colors.textSecondary }]}>
             • HTTP/1.0: Legacy protocol with limited features{'\n'}
             • HTTP/1.1: Traditional protocol with persistent connections{'\n'}
             • HTTP/2: Modern protocol with multiplexing and header compression{'\n'}
@@ -379,7 +381,6 @@ export default function ProtocolDistributionScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
   },
   scrollView: {
     flex: 1,
@@ -392,14 +393,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
-    backgroundColor: '#f5f5f5',
   },
   header: {
     marginBottom: 16,
   },
   timeRangeSelector: {
     flexDirection: 'row',
-    backgroundColor: '#fff',
     borderRadius: 8,
     padding: 4,
     marginBottom: 20,
@@ -415,70 +414,52 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderRadius: 6,
   },
-  timeRangeButtonActive: {
-    backgroundColor: '#f6821f',
-  },
   timeRangeButtonText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#666',
-  },
-  timeRangeButtonTextActive: {
-    color: '#fff',
   },
   title: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#333',
     marginBottom: 4,
   },
   lastUpdate: {
     fontSize: 14,
-    color: '#666',
     marginTop: 4,
   },
   cacheIndicator: {
     fontSize: 13,
-    color: '#f6821f',
     marginTop: 4,
   },
   loadingText: {
     marginTop: 12,
     fontSize: 16,
-    color: '#666',
   },
   errorTitle: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#e74c3c',
     marginBottom: 8,
   },
   errorMessage: {
     fontSize: 16,
-    color: '#666',
     textAlign: 'center',
     marginBottom: 20,
   },
   errorBanner: {
-    backgroundColor: '#fff3cd',
     borderRadius: 8,
     padding: 12,
     marginBottom: 16,
     borderLeftWidth: 4,
-    borderLeftColor: '#f6821f',
   },
   errorBannerText: {
     fontSize: 14,
-    color: '#856404',
   },
   warningBanner: {
-    backgroundColor: '#e8f4fd',
     borderRadius: 12,
     padding: 16,
     marginBottom: 16,
     flexDirection: 'row',
     borderLeftWidth: 4,
-    borderLeftColor: '#3498db',
   },
   warningIcon: {
     fontSize: 24,
@@ -490,16 +471,13 @@ const styles = StyleSheet.create({
   warningTitle: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#2c3e50',
     marginBottom: 4,
   },
   warningText: {
     fontSize: 14,
-    color: '#34495e',
     lineHeight: 20,
   },
   retryButton: {
-    backgroundColor: '#f6821f',
     paddingHorizontal: 24,
     paddingVertical: 12,
     borderRadius: 8,
@@ -510,7 +488,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   summaryCard: {
-    backgroundColor: '#fff',
     borderRadius: 12,
     padding: 20,
     alignItems: 'center',
@@ -523,16 +500,13 @@ const styles = StyleSheet.create({
   },
   summaryLabel: {
     fontSize: 14,
-    color: '#666',
     marginBottom: 8,
   },
   summaryValue: {
     fontSize: 32,
     fontWeight: 'bold',
-    color: '#333',
   },
   chartSection: {
-    backgroundColor: '#fff',
     borderRadius: 12,
     padding: 16,
     marginBottom: 20,
@@ -545,20 +519,15 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#333',
     marginBottom: 16,
   },
   chartContainer: {
     alignItems: 'center',
   },
-  chart: {
-    borderRadius: 16,
-  },
   detailsSection: {
     marginBottom: 20,
   },
   protocolCard: {
-    backgroundColor: '#fff',
     borderRadius: 12,
     padding: 16,
     marginBottom: 12,
@@ -587,16 +556,13 @@ const styles = StyleSheet.create({
   protocolName: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#333',
   },
   protocolPercentage: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#f6821f',
   },
   protocolDescription: {
     fontSize: 14,
-    color: '#666',
     marginBottom: 12,
   },
   protocolStats: {
@@ -608,17 +574,14 @@ const styles = StyleSheet.create({
   },
   protocolStatLabel: {
     fontSize: 12,
-    color: '#999',
     marginBottom: 4,
   },
   protocolStatValue: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#333',
   },
   progressBarContainer: {
     height: 8,
-    backgroundColor: '#f0f0f0',
     borderRadius: 4,
     overflow: 'hidden',
   },
@@ -627,7 +590,6 @@ const styles = StyleSheet.create({
     borderRadius: 4,
   },
   emptyState: {
-    backgroundColor: '#fff',
     borderRadius: 12,
     padding: 40,
     alignItems: 'center',
@@ -639,10 +601,8 @@ const styles = StyleSheet.create({
   },
   emptyStateText: {
     fontSize: 16,
-    color: '#999',
   },
   infoSection: {
-    backgroundColor: '#fff',
     borderRadius: 12,
     padding: 16,
     marginBottom: 20,
@@ -650,12 +610,10 @@ const styles = StyleSheet.create({
   infoTitle: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#333',
     marginBottom: 12,
   },
   infoText: {
     fontSize: 14,
-    color: '#666',
     lineHeight: 22,
   },
 });
