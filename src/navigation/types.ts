@@ -39,6 +39,11 @@ export type SettingsStackParamList = {
   AlertHistory: undefined;
 };
 
+// Export Stack Navigator (for PDF export features)
+export type ExportStackParamList = {
+  AdvancedExport: undefined;
+};
+
 // Root Stack Navigator
 export type RootStackParamList = {
   Auth: NavigatorScreenParams<AuthStackParamList>;

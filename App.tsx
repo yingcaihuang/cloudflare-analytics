@@ -16,6 +16,7 @@ import {
   FirewallAnalysisScreen,
   AlertConfigScreen,
   AlertHistoryScreen,
+  AdvancedExportScreen,
 } from './src/screens';
 import { MainTabs } from './src/navigation/MainTabs';
 import { ZoneProvider, useZone, ThemeProvider, DashboardProvider } from './src/contexts';
@@ -208,6 +209,15 @@ function AppNavigator() {
         component={AlertHistoryScreen}
         options={{
           title: '告警历史',
+          headerBackTitle: '返回',
+        }}
+      />
+
+      <Stack.Screen 
+        name="AdvancedExport"
+        component={AdvancedExportScreen}
+        options={{
+          title: '高级数据导出',
           headerBackTitle: '返回',
         }}
       />

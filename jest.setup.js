@@ -10,3 +10,12 @@ global.console = {
   error: console.error,
   warn: console.warn,
 };
+
+// Configure fast-check for property-based testing
+// Set default number of runs for property tests
+if (typeof global.fc !== 'undefined') {
+  global.fc.configureGlobal({
+    numRuns: 100, // Run each property test 100 times by default
+    verbose: false,
+  });
+}

@@ -22,3 +22,4 @@ export { default as SettingsScreen } from './SettingsScreen';
 export { default as AnalyticsScreen } from './AnalyticsScreen';
 export { CustomDashboardScreen } from './CustomDashboardScreen';
 export { LayoutManagerScreen } from './LayoutManagerScreen';
+export { default as AdvancedExportScreen } from './AdvancedExportScreen';

@@ -13,15 +13,16 @@ import {
   RefreshControl,
   ActivityIndicator,
   TouchableOpacity,
-  Alert,
 } from 'react-native';
 import { useFirewallAnalysis } from '../hooks/useFirewallAnalysis';
+import { ExportButton } from '../components';
 import { useTheme } from '../contexts/ThemeContext';
+import { useZone } from '../contexts/ZoneContext';
 
 export default function FirewallAnalysisScreen() {
   const { colors } = useTheme();
+  const { zoneId, zoneName, accountTag } = useZone();
   const [refreshing, setRefreshing] = useState(false);
-  const [exporting, setExporting] = useState(false);
   const [showAllRules, setShowAllRules] = useState(false);
   const [timeRange, setTimeRange] = useState<'24h' | '7d' | '30d'>('24h');
 
@@ -69,58 +70,7 @@ export default function FirewallAnalysisScreen() {
     }
   };
 
-  /**
-   * Handle data export
-   */
-  const handleExport = async () => {
-    if (!data) {
-      Alert.alert('No Data', 'No firewall analysis data available to export.');
-      return;
-    }
 
-    setExporting(true);
-    try {
-      // Create CSV content manually
-      const csvLines = [
-        '# Cloudflare Firewall Analysis Export',
-        `# Exported At: ${new Date().toISOString()}`,
-        '',
-        'Metric,Value',
-        `Total Firewall Events,${data.totalEvents}`,
-        '',
-        'Rule ID,Rule Name,Action,Count,Percentage',
-        ...data.topRules.map(rule =>
-          `${rule.ruleId},"${rule.ruleName}",${rule.action},${rule.count},${rule.percentage.toFixed(2)}%`
-        ),
-      ];
-
-      const csvContent = csvLines.join('\n');
-      const filename = `firewall_analysis_${new Date().toISOString().split('T')[0]}.csv`;
-
-      // Use ExportManager's private method pattern
-      const { Share, Platform } = require('react-native');
-      const { Paths, File } = require('expo-file-system');
-      
-      const file = new File(Paths.cache, filename);
-      await file.write(csvContent);
-
-      await Share.share(
-        Platform.OS === 'ios'
-          ? { url: file.uri }
-          : { message: 'Firewall Analysis Export', url: file.uri }
-      );
-
-      Alert.alert('Success', 'Firewall analysis data exported successfully!');
-    } catch (error) {
-      console.error('Export error:', error);
-      Alert.alert(
-        'Export Failed',
-        error instanceof Error ? error.message : 'Failed to export data. Please try again.'
-      );
-    } finally {
-      setExporting(false);
-    }
-  };
 
   /**
    * Format large numbers with commas
@@ -194,15 +144,15 @@ export default function FirewallAnalysisScreen() {
         {/* Header */}
         <View style={[styles.header, { backgroundColor: colors.surface, borderBottomColor: colors.border }]}>
           <Text style={[styles.title, { color: colors.text }]}>Firewall Analysis</Text>
-          <TouchableOpacity
-            style={[styles.exportButton, { backgroundColor: exporting ? colors.textDisabled : colors.secondary }]}
-            onPress={handleExport}
-            disabled={exporting}
-          >
-            <Text style={styles.exportButtonText}>
-              {exporting ? 'Exporting...' : 'Export'}
-            </Text>
-          </TouchableOpacity>
+          <ExportButton
+            exportType="firewall"
+            zoneId={zoneId || ''}
+            zoneName={zoneName || 'Unknown Zone'}
+            accountTag={accountTag || undefined}
+            startDate={dateRanges.startDate}
+            endDate={dateRanges.endDate}
+            disabled={!data}
+          />
         </View>
 
         {/* Last refresh time */}
@@ -369,16 +319,7 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold',
   },
-  exportButton: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 8,
-  },
-  exportButtonText: {
-    color: '#ffffff',
-    fontSize: 14,
-    fontWeight: '600',
-  },
+
   lastRefresh: {
     fontSize: 12,
     textAlign: 'center',

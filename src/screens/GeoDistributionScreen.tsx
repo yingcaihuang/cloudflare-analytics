@@ -19,6 +19,7 @@ import {
 import { useGeoDistribution } from '../hooks/useGeoDistribution';
 import { useZone } from '../contexts/ZoneContext';
 import { MetricsQueryParams } from '../types';
+import { ExportButton } from '../components';
 import { useTheme } from '../contexts/ThemeContext';
 
 interface CountryItem {
@@ -31,7 +32,7 @@ interface CountryItem {
 
 export default function GeoDistributionScreen() {
   const { colors } = useTheme();
-  const { zoneId, accountTag } = useZone();
+  const { zoneId, zoneName, accountTag } = useZone();
   const [refreshing, setRefreshing] = useState(false);
   const [selectedCountry, setSelectedCountry] = useState<CountryItem | null>(null);
   const [showTopOnly, setShowTopOnly] = useState(true);
@@ -241,15 +242,26 @@ export default function GeoDistributionScreen() {
       >
         {/* Header */}
         <View style={styles.header}>
-          <Text style={[styles.title, { color: colors.text }]}>Geographic Distribution</Text>
-          {lastRefreshTime && (
-            <Text style={[styles.lastUpdate, { color: colors.textSecondary }]}>
-              Last updated: {lastRefreshTime.toLocaleTimeString()}
-            </Text>
-          )}
-          {isFromCache && (
-            <Text style={[styles.cacheIndicator, { color: colors.primary }]}>📦 Showing cached data</Text>
-          )}
+          <View style={styles.headerLeft}>
+            <Text style={[styles.title, { color: colors.text }]}>Geographic Distribution</Text>
+            {lastRefreshTime && (
+              <Text style={[styles.lastUpdate, { color: colors.textSecondary }]}>
+                Last updated: {lastRefreshTime.toLocaleTimeString()}
+              </Text>
+            )}
+            {isFromCache && (
+              <Text style={[styles.cacheIndicator, { color: colors.primary }]}>📦 Showing cached data</Text>
+            )}
+          </View>
+          <ExportButton
+            exportType="geo"
+            zoneId={zoneId || ''}
+            zoneName={zoneName || 'Unknown Zone'}
+            accountTag={accountTag}
+            startDate={dateRanges.startDate}
+            endDate={dateRanges.endDate}
+            disabled={!data}
+          />
         </View>
 
         {/* Time Range Selector */}
@@ -417,6 +429,12 @@ const styles = StyleSheet.create({
   },
   header: {
     marginBottom: 16,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+  },
+  headerLeft: {
+    flex: 1,
   },
   timeRangeSelector: {
     flexDirection: 'row',

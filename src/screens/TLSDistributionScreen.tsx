@@ -18,7 +18,7 @@ import {
 import { useTLSDistribution } from '../hooks/useTLSDistribution';
 import { useZone } from '../contexts/ZoneContext';
 import { MetricsQueryParams } from '../types';
-import { PieChart, PieChartDataItem } from '../components/PieChart';
+import { PieChart, PieChartDataItem, ExportButton } from '../components/PieChart';
 import { useTheme } from '../contexts/ThemeContext';
 
 interface TLSStats {
@@ -34,7 +34,7 @@ interface TLSStats {
 
 export default function TLSDistributionScreen() {
   const { colors } = useTheme();
-  const { zoneId, accountTag } = useZone();
+  const { zoneId, zoneName, accountTag } = useZone();
   const [refreshing, setRefreshing] = useState(false);
   const [timeRange, setTimeRange] = useState<'24h' | '7d' | '30d'>('24h');
 
@@ -241,15 +241,26 @@ export default function TLSDistributionScreen() {
       >
         {/* Header */}
         <View style={styles.header}>
-          <Text style={[styles.title, { color: colors.text }]}>TLS Version Distribution</Text>
-          {lastRefreshTime && (
-            <Text style={[styles.lastUpdate, { color: colors.textSecondary }]}>
-              Last updated: {lastRefreshTime.toLocaleTimeString()}
-            </Text>
-          )}
-          {isFromCache && (
-            <Text style={[styles.cacheIndicator, { color: colors.primary }]}>📦 Showing cached data</Text>
-          )}
+          <View style={styles.headerLeft}>
+            <Text style={[styles.title, { color: colors.text }]}>TLS Version Distribution</Text>
+            {lastRefreshTime && (
+              <Text style={[styles.lastUpdate, { color: colors.textSecondary }]}>
+                Last updated: {lastRefreshTime.toLocaleTimeString()}
+              </Text>
+            )}
+            {isFromCache && (
+              <Text style={[styles.cacheIndicator, { color: colors.primary }]}>📦 Showing cached data</Text>
+            )}
+          </View>
+          <ExportButton
+            exportType="tls"
+            zoneId={zoneId || ''}
+            zoneName={zoneName || 'Unknown Zone'}
+            accountTag={accountTag}
+            startDate={dateRanges.startDate}
+            endDate={dateRanges.endDate}
+            disabled={!data}
+          />
         </View>
 
         {/* Time Range Selector */}
@@ -459,6 +470,12 @@ const styles = StyleSheet.create({
   },
   header: {
     marginBottom: 16,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+  },
+  headerLeft: {
+    flex: 1,
   },
   timeRangeSelector: {
     flexDirection: 'row',

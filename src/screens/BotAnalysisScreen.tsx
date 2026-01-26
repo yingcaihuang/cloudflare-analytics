@@ -16,13 +16,14 @@ import {
   Alert,
 } from 'react-native';
 import { useBotAnalysis } from '../hooks/useBotAnalysis';
-import { BarChart } from '../components';
+import { BarChart, ExportButton } from '../components';
 import { useTheme } from '../contexts/ThemeContext';
+import { useZone } from '../contexts/ZoneContext';
 
 export default function BotAnalysisScreen() {
   const { colors } = useTheme();
+  const { zoneId, zoneName, accountTag } = useZone();
   const [refreshing, setRefreshing] = useState(false);
-  const [exporting, setExporting] = useState(false);
   const [timeRange, setTimeRange] = useState<'24h' | '7d' | '30d'>('24h');
 
   // Calculate date ranges based on selected time range
@@ -69,60 +70,7 @@ export default function BotAnalysisScreen() {
     }
   };
 
-  /**
-   * Handle data export
-   */
-  const handleExport = async () => {
-    if (!data) {
-      Alert.alert('No Data', 'No bot analysis data available to export.');
-      return;
-    }
 
-    setExporting(true);
-    try {
-      // Create CSV content manually
-      const csvLines = [
-        '# Cloudflare Bot Analysis Export',
-        `# Exported At: ${new Date().toISOString()}`,
-        '',
-        'Metric,Value',
-        `Total Requests,${data.totalRequests}`,
-        `Bot Requests,${data.botRequests}`,
-        `Bot Percentage,${data.botPercentage.toFixed(2)}%`,
-        '',
-        'Score Range,Count,Percentage',
-        ...data.scoreDistribution.map(item => 
-          `${item.range},${item.count},${item.percentage.toFixed(2)}%`
-        ),
-      ];
-
-      const csvContent = csvLines.join('\n');
-      const filename = `bot_analysis_${new Date().toISOString().split('T')[0]}.csv`;
-
-      // Use ExportManager's private method pattern
-      const { Share, Platform } = require('react-native');
-      const { Paths, File } = require('expo-file-system');
-      
-      const file = new File(Paths.cache, filename);
-      await file.write(csvContent);
-
-      await Share.share(
-        Platform.OS === 'ios'
-          ? { url: file.uri }
-          : { message: 'Bot Analysis Export', url: file.uri }
-      );
-
-      Alert.alert('Success', 'Bot analysis data exported successfully!');
-    } catch (error) {
-      console.error('Export error:', error);
-      Alert.alert(
-        'Export Failed',
-        error instanceof Error ? error.message : 'Failed to export data. Please try again.'
-      );
-    } finally {
-      setExporting(false);
-    }
-  };
 
   /**
    * Format large numbers with commas
@@ -178,15 +126,15 @@ export default function BotAnalysisScreen() {
         {/* Header */}
         <View style={[styles.header, { backgroundColor: colors.surface, borderBottomColor: colors.border }]}>
           <Text style={[styles.title, { color: colors.text }]}>Bot Analysis</Text>
-          <TouchableOpacity
-            style={[styles.exportButton, { backgroundColor: exporting ? colors.textDisabled : colors.secondary }]}
-            onPress={handleExport}
-            disabled={exporting}
-          >
-            <Text style={styles.exportButtonText}>
-              {exporting ? 'Exporting...' : 'Export'}
-            </Text>
-          </TouchableOpacity>
+          <ExportButton
+            exportType="bot"
+            zoneId={zoneId || ''}
+            zoneName={zoneName || 'Unknown Zone'}
+            accountTag={accountTag}
+            startDate={dateRanges.startDate}
+            endDate={dateRanges.endDate}
+            disabled={!data}
+          />
         </View>
 
         {/* Last refresh time */}
@@ -327,16 +275,7 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold',
   },
-  exportButton: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 8,
-  },
-  exportButtonText: {
-    color: '#ffffff',
-    fontSize: 14,
-    fontWeight: '600',
-  },
+
   lastRefresh: {
     fontSize: 12,
     textAlign: 'center',

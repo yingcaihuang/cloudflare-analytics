@@ -18,7 +18,7 @@ import {
 import { useProtocolDistribution } from '../hooks/useProtocolDistribution';
 import { useZone } from '../contexts/ZoneContext';
 import { MetricsQueryParams } from '../types';
-import { BarChart } from '../components';
+import { BarChart, ExportButton } from '../components';
 import { useTheme } from '../contexts/ThemeContext';
 
 interface ProtocolStats {
@@ -32,7 +32,7 @@ interface ProtocolStats {
 
 export default function ProtocolDistributionScreen() {
   const { colors } = useTheme();
-  const { zoneId, accountTag } = useZone();
+  const { zoneId, zoneName, accountTag } = useZone();
   const [refreshing, setRefreshing] = useState(false);
   const [timeRange, setTimeRange] = useState<'24h' | '7d' | '30d'>('24h');
 
@@ -228,15 +228,26 @@ export default function ProtocolDistributionScreen() {
       >
         {/* Header */}
         <View style={styles.header}>
-          <Text style={[styles.title, { color: colors.text }]}>Protocol Distribution</Text>
-          {lastRefreshTime && (
-            <Text style={[styles.lastUpdate, { color: colors.textSecondary }]}>
-              Last updated: {lastRefreshTime.toLocaleTimeString()}
-            </Text>
-          )}
-          {isFromCache && (
-            <Text style={[styles.cacheIndicator, { color: colors.primary }]}>📦 Showing cached data</Text>
-          )}
+          <View style={styles.headerLeft}>
+            <Text style={[styles.title, { color: colors.text }]}>Protocol Distribution</Text>
+            {lastRefreshTime && (
+              <Text style={[styles.lastUpdate, { color: colors.textSecondary }]}>
+                Last updated: {lastRefreshTime.toLocaleTimeString()}
+              </Text>
+            )}
+            {isFromCache && (
+              <Text style={[styles.cacheIndicator, { color: colors.primary }]}>📦 Showing cached data</Text>
+            )}
+          </View>
+          <ExportButton
+            exportType="protocol"
+            zoneId={zoneId || ''}
+            zoneName={zoneName || 'Unknown Zone'}
+            accountTag={accountTag}
+            startDate={dateRanges.startDate}
+            endDate={dateRanges.endDate}
+            disabled={!data}
+          />
         </View>
 
         {/* Time Range Selector */}
@@ -396,6 +407,12 @@ const styles = StyleSheet.create({
   },
   header: {
     marginBottom: 16,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+  },
+  headerLeft: {
+    flex: 1,
   },
   timeRangeSelector: {
     flexDirection: 'row',

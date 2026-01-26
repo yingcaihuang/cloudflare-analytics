@@ -14,13 +14,11 @@ import {
   ActivityIndicator,
   TouchableOpacity,
   FlatList,
-  Alert,
 } from 'react-native';
 import { useStatusCodes } from '../hooks/useStatusCodes';
 import { useZone } from '../contexts';
 import { MetricsQueryParams } from '../types';
-import { PieChart, PieChartDataItem } from '../components';
-import { ExportManager } from '../services';
+import { PieChart, PieChartDataItem, ExportButton } from '../components';
 import { useTheme } from '../contexts/ThemeContext';
 
 interface StatusCodesScreenProps {
@@ -58,7 +56,6 @@ export default function StatusCodesScreen({ zoneId: propZoneId, zoneName: propZo
 
   const [refreshing, setRefreshing] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  const [exporting, setExporting] = useState(false);
   const [timeRange, setTimeRange] = useState<'24h' | '7d' | '30d'>('24h');
 
   // Calculate date ranges based on selected time range
@@ -115,38 +112,7 @@ export default function StatusCodesScreen({ zoneId: propZoneId, zoneName: propZo
     }
   };
 
-  /**
-   * Handle data export
-   * Requirement 17.1, 17.3: Export status code data to CSV
-   */
-  const handleExport = async () => {
-    if (!data) {
-      Alert.alert('No Data', 'No status code data available to export.');
-      return;
-    }
 
-    setExporting(true);
-    try {
-      const zone = {
-        id: zoneId,
-        name: zoneName,
-        status: 'active' as const,
-        plan: 'Unknown',
-      };
-
-      const timeRange = { start: dateRanges.startDate, end: dateRanges.endDate };
-      await ExportManager.exportStatusCodes(data, zone, timeRange);
-      Alert.alert('Success', 'Status code data exported successfully!');
-    } catch (error) {
-      console.error('Export error:', error);
-      Alert.alert(
-        'Export Failed',
-        error instanceof Error ? error.message : 'Failed to export data. Please try again.'
-      );
-    } finally {
-      setExporting(false);
-    }
-  };
 
   /**
    * Prepare pie chart data from status code data
@@ -356,15 +322,14 @@ export default function StatusCodesScreen({ zoneId: propZoneId, zoneName: propZo
               <Text style={[styles.cacheIndicator, { color: colors.primary }]}>📦 Showing cached data</Text>
             )}
           </View>
-          <TouchableOpacity
-            style={[styles.exportButton, { backgroundColor: colors.primary }, exporting && styles.exportButtonDisabled]}
-            onPress={handleExport}
-            disabled={exporting || !data}
-          >
-            <Text style={styles.exportButtonText}>
-              {exporting ? '⏳' : '📤'} Export
-            </Text>
-          </TouchableOpacity>
+          <ExportButton
+            exportType="status-codes"
+            zoneId={zoneId}
+            zoneName={zoneName}
+            startDate={dateRanges.startDate}
+            endDate={dateRanges.endDate}
+            disabled={!data}
+          />
         </View>
 
         {/* Time Range Selector */}
@@ -489,20 +454,7 @@ const styles = StyleSheet.create({
   headerLeft: {
     flex: 1,
   },
-  exportButton: {
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 8,
-    marginLeft: 12,
-  },
-  exportButtonDisabled: {
-    backgroundColor: '#ccc',
-  },
-  exportButtonText: {
-    color: '#fff',
-    fontSize: 14,
-    fontWeight: '600',
-  },
+
   timeRangeSelector: {
     flexDirection: 'row',
     borderRadius: 8,

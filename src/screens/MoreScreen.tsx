@@ -44,6 +44,14 @@ const menuItems: MenuItem[] = [
     icon: '⚙️',
     category: '设置',
   },
+  // 数据导出
+  {
+    title: '高级数据导出',
+    description: '导出完整的分析数据为 PDF',
+    screen: 'AdvancedExport',
+    icon: '📄',
+    category: '数据导出',
+  },
   // 分析功能
   {
     title: '地理分布',
