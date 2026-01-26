@@ -39,6 +39,7 @@ export const CustomDashboardScreen: React.FC = () => {
     switchLayout,
     updateCardOrder,
     toggleCardVisibility,
+    resetToDefault,
   } = useDashboard();
 
   const [refreshing, setRefreshing] = useState(false);
@@ -116,6 +117,22 @@ export const CustomDashboardScreen: React.FC = () => {
   const handleNavigateToSettings = useCallback(() => {
     navigation.navigate('LayoutManager' as never);
   }, [navigation]);
+
+  /**
+   * Handle reset to default configuration
+   */
+  const handleResetToDefault = useCallback(async () => {
+    try {
+      await resetToDefault();
+      showToast('已恢复默认配置', 'success');
+    } catch (error) {
+      console.error('Failed to reset to default:', error);
+      showToast(
+        error instanceof Error ? error.message : '恢复失败',
+        'error'
+      );
+    }
+  }, [resetToDefault, showToast]);
 
   /**
    * Handle layout selection from LayoutSelector
@@ -263,6 +280,12 @@ export const CustomDashboardScreen: React.FC = () => {
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.headerButton}
+              onPress={handleResetToDefault}
+            >
+              <Text style={styles.settingsIcon}>🔄</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.headerButton}
               onPress={handleNavigateToSettings}
             >
               <Text style={styles.settingsIcon}>⚙️</Text>
@@ -298,6 +321,14 @@ export const CustomDashboardScreen: React.FC = () => {
             <Text style={[styles.headerButtonText, { color: colors.primary }]}>
               {isEditMode ? '完成' : '编辑'}
             </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.headerButton}
+            onPress={handleResetToDefault}
+            accessibilityLabel="恢复默认值"
+            accessibilityRole="button"
+          >
+            <Text style={styles.settingsIcon}>🔄</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.headerButton}
