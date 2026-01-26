@@ -10,9 +10,11 @@ export type AuthStackParamList = {
 export type MainTabParamList = {
   Home: undefined;
   Dashboard: undefined;
+  CustomDashboard: undefined;
   StatusCodes: undefined;
   Security: undefined;
   More: undefined;
+  LayoutManager: undefined;
 };
 
 // Root Stack Navigator

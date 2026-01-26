@@ -311,6 +311,31 @@ export default function TokenManagementScreen({ onTokenSelected }: TokenManageme
 }
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 40,
+  },
+  loadingText: {
+    fontSize: 16,
+    marginTop: 16,
+  },
+  header: {
+    padding: 16,
+    borderBottomWidth: 1,
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 4,
+  },
+  subtitle: {
+    fontSize: 14,
+  },
   listContainer: {
     flex: 1,
     padding: 12,
@@ -321,6 +346,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 40,
     marginTop: 60,
+  },
+  emptyText: {
+    fontSize: 16,
+    textAlign: 'center',
+    marginBottom: 12,
+  },
+  emptySubtext: {
+    fontSize: 14,
+    textAlign: 'center',
   },
   tokenCard: {
     borderRadius: 12,
@@ -346,6 +380,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 6,
   },
+  tokenLabel: {
+    fontSize: 18,
+    fontWeight: '600',
+    marginRight: 8,
+  },
+  tokenDate: {
+    fontSize: 13,
+  },
   currentBadge: {
     paddingHorizontal: 8,
     paddingVertical: 2,
@@ -364,6 +406,10 @@ const styles = StyleSheet.create({
     padding: 12,
     alignItems: 'center',
     borderTopWidth: 1,
+  },
+  deleteButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
   },
   footer: {
     padding: 16,
@@ -396,8 +442,19 @@ const styles = StyleSheet.create({
     maxWidth: 500,
     maxHeight: '70%',
   },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 20,
+  },
   modalScrollView: {
     maxHeight: 300,
+  },
+  inputLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    marginBottom: 8,
+    marginTop: 12,
   },
   input: {
     borderWidth: 1,
@@ -422,6 +479,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   cancelButton: {
+  },
+  cancelButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
   },
   confirmButton: {
   },

@@ -19,3 +19,5 @@ export { default as AlertHistoryScreen } from './AlertHistoryScreen';
 export { default as BotAnalysisScreen } from './BotAnalysisScreen';
 export { default as FirewallAnalysisScreen } from './FirewallAnalysisScreen';
 export { default as MoreScreen } from './MoreScreen';
+export { CustomDashboardScreen } from './CustomDashboardScreen';
+export { LayoutManagerScreen } from './LayoutManagerScreen';

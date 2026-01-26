@@ -3,14 +3,11 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { 
-  HomeScreen,
   TokenManagementScreen,
   AccountZoneSelectionScreen,
-  DashboardScreen, 
   StatusCodesScreen, 
-  SecurityScreen,
-  MoreScreen,
   GeoDistributionScreen,
   ProtocolDistributionScreen,
   TLSDistributionScreen,
@@ -20,96 +17,12 @@ import {
   AlertConfigScreen,
   AlertHistoryScreen,
 } from './src/screens';
-import { ZoneProvider, useZone, ThemeProvider } from './src/contexts';
+import { MainTabs } from './src/navigation/MainTabs';
+import { ZoneProvider, useZone, ThemeProvider, DashboardProvider } from './src/contexts';
 import { AuthManager } from './src/services';
 import { View, Text, ActivityIndicator, StyleSheet, TouchableOpacity } from 'react-native';
 
 const Stack = createNativeStackNavigator();
-const Tab = createBottomTabNavigator();
-
-// Tab Icon Component
-const TabIcon: React.FC<{ name: string; color: string }> = ({ name, color }) => {
-  const icons: Record<string, string> = {
-    home: '🏠',
-    chart: '📊',
-    shield: '🛡️',
-    more: '⋯',
-  };
-
-  return (
-    <Text style={{ fontSize: 24, color }}>{icons[name] || '•'}</Text>
-  );
-};
-
-// Main tabs after authentication
-function MainTabs() {
-  const { selectedAccount, zoneId, zoneName } = useZone();
-
-  return (
-    <Tab.Navigator
-      screenOptions={{
-        tabBarStyle: { paddingBottom: 5, height: 60 },
-        tabBarActiveTintColor: '#f97316',
-        tabBarInactiveTintColor: '#6b7280',
-      }}
-    >
-      <Tab.Screen 
-        name="Home"
-        component={HomeScreen}
-        options={{ 
-          title: '首页',
-          headerShown: false,
-          tabBarIcon: ({ color }) => <TabIcon name="home" color={color} />,
-        }}
-      />
-      <Tab.Screen 
-        name="Dashboard"
-        children={(props) => <DashboardScreen {...props} zoneId={zoneId || ''} zoneName={zoneName || undefined} />}
-        options={{ 
-          title: '概览',
-          tabBarIcon: ({ color }) => <TabIcon name="chart" color={color} />,
-          headerTitle: () => (
-            <View>
-              <Text style={{ fontSize: 18, fontWeight: 'bold' }}>流量概览</Text>
-              {selectedAccount && zoneName && (
-                <Text style={{ fontSize: 12, color: '#666' }}>
-                  {selectedAccount.name} • {zoneName}
-                </Text>
-              )}
-            </View>
-          ),
-        }}
-      />
-      <Tab.Screen 
-        name="Security"
-        children={(props) => <SecurityScreen {...props} zoneId={zoneId || ''} zoneName={zoneName || undefined} />}
-        options={{ 
-          title: '安全',
-          tabBarIcon: ({ color }) => <TabIcon name="shield" color={color} />,
-          headerTitle: () => (
-            <View>
-              <Text style={{ fontSize: 18, fontWeight: 'bold' }}>安全与缓存</Text>
-              {selectedAccount && zoneName && (
-                <Text style={{ fontSize: 12, color: '#666' }}>
-                  {selectedAccount.name} • {zoneName}
-                </Text>
-              )}
-            </View>
-          ),
-        }}
-      />
-      <Tab.Screen 
-        name="More"
-        component={MoreScreen}
-        options={{ 
-          title: '更多',
-          tabBarIcon: ({ color }) => <TabIcon name="more" color={color} />,
-          headerShown: false,
-        }}
-      />
-    </Tab.Navigator>
-  );
-}
 
 function AppNavigator() {
   const [isInitializing, setIsInitializing] = useState(true);
@@ -304,15 +217,19 @@ function AppNavigator() {
 
 export default function App() {
   return (
-    <SafeAreaProvider>
-      <ThemeProvider>
-        <ZoneProvider>
-          <NavigationContainer>
-            <AppNavigator />
-          </NavigationContainer>
-        </ZoneProvider>
-      </ThemeProvider>
-    </SafeAreaProvider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <SafeAreaProvider>
+        <ThemeProvider>
+          <ZoneProvider>
+            <DashboardProvider>
+              <NavigationContainer>
+                <AppNavigator />
+              </NavigationContainer>
+            </DashboardProvider>
+          </ZoneProvider>
+        </ThemeProvider>
+      </SafeAreaProvider>
+    </GestureHandlerRootView>
   );
 }
 

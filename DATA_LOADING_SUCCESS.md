@@ -1,48 +1,55 @@
-# Data Loading Success - Geographic Distribution
+# Data Loading Issue Fixed
 
-## ✅ Success!
-The GraphQL query fix is working! Data is now loading successfully.
+## Problem
+HomeScreen showed correct counts (tokens, accounts, zones) but when navigating to AccountZoneSelectionScreen and TokenManagementScreen, the lists appeared empty despite data being loaded.
 
-## Evidence from Logs
-```
-LOG  [GraphQLClient] Geo distribution aggregated: {"totalCountries": 17, "totalRequests": 452}
-LOG  [useGeoDistribution] API result: {"countries": [{"bytes": 1562116, "code": "XX", "name": "FR", ...}]}
-```
+## Root Cause
+Missing style definitions in both screens' StyleSheet. The components were rendering but not visible because critical styles like `container`, `header`, `title`, `subtitle`, `listItemTitle`, etc. were referenced in the JSX but not defined in the StyleSheet.
 
-### Data Loaded:
-- **17 countries** detected
-- **452 total requests**
-- Countries properly sorted by request count
-- Top countries: FR (210 requests, 46%), US (177 requests, 39%), CN (16 requests, 3.5%)
+## Solution
+Added all missing style definitions to both screens:
 
-## Minor Issue: React Key Warning
-There's a React warning about duplicate keys because all countries show `code: "XX"`. This is a display issue, not a data loading issue.
+### AccountZoneSelectionScreen.tsx
+Added missing styles:
+- `container` - Main container flex layout
+- `loadingContainer` - Loading state container
+- `loadingText` - Loading text style
+- `loadingSubtext` - Loading subtext style
+- `header` - Header container with padding and border
+- `title` - Main title text (24px, bold)
+- `subtitle` - Subtitle text (14px)
+- `backButtonText` - Back button text style
+- `listItemTitle` - List item title (16px, bold)
+- `listItemSubtitle` - List item subtitle (13px)
 
-### Root Cause
-The API returns 2-letter country codes (FR, US, CN, etc.) in the `metric` field, but there's a logic issue in how we're processing them.
+### TokenManagementScreen.tsx
+Added missing styles:
+- `container` - Main container flex layout
+- `loadingContainer` - Loading state container
+- `loadingText` - Loading text style
+- `header` - Header container with padding and border
+- `title` - Main title text (24px, bold)
+- `subtitle` - Subtitle text (14px)
+- `tokenLabel` - Token label text (18px, bold)
+- `tokenDate` - Token date text (13px)
+- `deleteButtonText` - Delete button text style
+- `emptyText` - Empty state text (16px)
+- `emptySubtext` - Empty state subtext (14px)
+- `modalTitle` - Modal title text (20px, bold)
+- `inputLabel` - Input label text (14px, bold)
+- `cancelButtonText` - Cancel button text style
 
-### Current Behavior
-- API returns: `metric: "FR"`
-- Expected: `{code: "FR", name: "France"}`
-- Actual: `{code: "XX", name: "FR"}`
+## Files Modified
+1. `cloudflare-analytics/src/screens/AccountZoneSelectionScreen.tsx`
+2. `cloudflare-analytics/src/screens/TokenManagementScreen.tsx`
 
-### Debug Logs Added
-I've added debug logging to track the country code processing:
-```typescript
-console.log(`[GraphQLClient] Processing country: nameOrCode="${nameOrCode}", isCode=${isCode}, code="${code}", name="${name}"`);
-```
+## Testing
+After this fix:
+1. HomeScreen should continue showing correct counts
+2. AccountZoneSelectionScreen should now display the full list of accounts with zone counts
+3. TokenManagementScreen should now display the full list of saved tokens
+4. All text should be properly styled and visible
+5. Navigation between screens should work correctly
 
-## Next Steps
-1. **Test again** to see the new debug logs
-2. The logs will show us exactly what's happening in the country code processing
-3. Once we see the logs, we can fix the mapping logic
-
-## Impact
-- ✅ Data is loading correctly
-- ✅ Requests and percentages are accurate
-- ✅ Countries are properly sorted
-- ⚠️ Country codes need fixing (cosmetic issue only)
-- ⚠️ React key warning (doesn't affect functionality)
-
-## Conclusion
-The main issue (no data loading) is **FIXED**! The remaining issue is just about properly mapping country codes to names, which is a minor display issue that doesn't affect the core functionality.
+## Related Issues
+This issue was discovered after fixing the infinite loop problems in the custom hooks. The data was loading correctly, but the UI wasn't displaying it due to missing styles.

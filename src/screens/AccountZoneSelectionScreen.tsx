@@ -539,10 +539,40 @@ export default function AccountZoneSelectionScreen({ onComplete }: AccountZoneSe
 }
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 40,
+  },
+  loadingText: {
+    fontSize: 16,
+    marginTop: 16,
+  },
+  loadingSubtext: {
+    fontSize: 14,
+    marginTop: 8,
+    textAlign: 'center',
+  },
+  header: {
+    padding: 16,
+    borderBottomWidth: 1,
+  },
   headerContent: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 4,
+  },
+  subtitle: {
+    fontSize: 14,
   },
   sortButton: {
     borderRadius: 8,
@@ -563,6 +593,10 @@ const styles = StyleSheet.create({
   backButton: {
     padding: 16,
     borderBottomWidth: 1,
+  },
+  backButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
   },
   searchContainer: {
     padding: 12,
@@ -609,6 +643,14 @@ const styles = StyleSheet.create({
   },
   listItemContent: {
     flex: 1,
+  },
+  listItemTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 4,
+  },
+  listItemSubtitle: {
+    fontSize: 13,
   },
   accountTitleRow: {
     flexDirection: 'row',

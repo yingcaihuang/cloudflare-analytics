@@ -38,10 +38,14 @@ export function useStatusCodes(
   const [isFromCache, setIsFromCache] = useState<boolean>(false);
 
   // Generate cache key based on params
+  const zoneId = params.zoneId;
+  const accountTag = params.accountTag;
+  const startDateStr = params.startDate.toISOString();
+  const endDateStr = params.endDate.toISOString();
+  
   const getCacheKey = useCallback(() => {
-    const { zoneId, startDate, endDate } = params;
-    return `${CACHE_KEY_PREFIX}${zoneId}_${startDate.toISOString()}_${endDate.toISOString()}`;
-  }, [params]);
+    return `${CACHE_KEY_PREFIX}${zoneId}_${startDateStr}_${endDateStr}`;
+  }, [zoneId, accountTag, startDateStr, endDateStr]);
 
   // Fetch data from API or cache
   const fetchData = useCallback(async (forceRefresh: boolean = false) => {
@@ -89,7 +93,7 @@ export function useStatusCodes(
     } finally {
       setLoading(false);
     }
-  }, [params, getCacheKey]);
+  }, [zoneId, accountTag, startDateStr, endDateStr, getCacheKey]);
 
   // Refresh function that forces a fresh fetch
   const refresh = useCallback(async () => {

@@ -1,11 +1,27 @@
 import React from 'react';
 import { Text } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { HomeScreen, DashboardScreen, StatusCodesScreen, SecurityScreen, MoreScreen } from '../screens';
+import { createStackNavigator } from '@react-navigation/stack';
+import { HomeScreen, DashboardScreen, CustomDashboardScreen, StatusCodesScreen, SecurityScreen, MoreScreen, LayoutManagerScreen } from '../screens';
 import { useZone } from '../contexts';
 import type { MainTabParamList } from './types';
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
+const Stack = createStackNavigator();
+
+// Custom Dashboard Stack Navigator
+const CustomDashboardStack: React.FC = () => {
+  return (
+    <Stack.Navigator
+      screenOptions={{
+        headerShown: false,
+      }}
+    >
+      <Stack.Screen name="CustomDashboardMain" component={CustomDashboardScreen} />
+      <Stack.Screen name="LayoutManager" component={LayoutManagerScreen} />
+    </Stack.Navigator>
+  );
+};
 
 export const MainTabs: React.FC = () => {
   const { zoneId } = useZone();
@@ -54,6 +70,18 @@ export const MainTabs: React.FC = () => {
         {(props) => <DashboardScreen {...props} zoneId={zoneId || ''} />}
       </Tab.Screen>
       <Tab.Screen
+        name="CustomDashboard"
+        component={CustomDashboardStack}
+        options={{
+          title: '自定义仪表板',
+          tabBarLabel: '自定义',
+          headerShown: false,
+          tabBarIcon: ({ color }) => (
+            <TabIcon name="custom" color={color} />
+          ),
+        }}
+      />
+      <Tab.Screen
         name="Security"
         options={{
           title: '安全与缓存',
@@ -85,6 +113,7 @@ const TabIcon: React.FC<{ name: string; color: string }> = ({ name, color }) => 
   const icons: Record<string, string> = {
     home: '🏠',
     chart: '📊',
+    custom: '⚙️',
     code: '📋',
     shield: '🛡️',
     more: '⋯',

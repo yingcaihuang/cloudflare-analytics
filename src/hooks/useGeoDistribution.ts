@@ -40,18 +40,23 @@ export function useGeoDistribution(
   console.log('[useGeoDistribution] Hook called with params:', params);
   console.log('[useGeoDistribution] autoFetch:', autoFetch);
 
+  // Extract stable values from params to avoid infinite loops
+  const zoneId = params.zoneId;
+  const accountTag = params.accountTag;
+  const startDateStr = params.startDate.toISOString();
+  const endDateStr = params.endDate.toISOString();
+
   // Generate cache key based on params
   const getCacheKey = useCallback(() => {
-    const { zoneId, startDate, endDate } = params;
-    return `${CACHE_KEY_PREFIX}${zoneId}_${startDate.toISOString()}_${endDate.toISOString()}`;
-  }, [params]);
+    return `${CACHE_KEY_PREFIX}${zoneId}_${startDateStr}_${endDateStr}`;
+  }, [zoneId, accountTag, startDateStr, endDateStr]);
 
   // Fetch data from API or cache
   const fetchData = useCallback(async (forceRefresh: boolean = false) => {
     console.log('[useGeoDistribution] fetchData called, forceRefresh:', forceRefresh);
-    console.log('[useGeoDistribution] params.zoneId:', params.zoneId);
+    console.log('[useGeoDistribution] params.zoneId:', zoneId);
     
-    if (!params.zoneId) {
+    if (!zoneId) {
       console.log('[useGeoDistribution] No zoneId, skipping fetch');
       setError('No zone selected');
       setLoading(false);
@@ -109,7 +114,7 @@ export function useGeoDistribution(
     } finally {
       setLoading(false);
     }
-  }, [params, getCacheKey]);
+  }, [zoneId, accountTag, startDateStr, endDateStr, getCacheKey]);
 
   // Refresh function that forces a fresh fetch
   const refresh = useCallback(async () => {

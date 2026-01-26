@@ -37,11 +37,16 @@ export function useProtocolDistribution(
   const [lastRefreshTime, setLastRefreshTime] = useState<Date | null>(null);
   const [isFromCache, setIsFromCache] = useState<boolean>(false);
 
+  // Extract stable values from params to avoid infinite loops
+  const zoneId = params.zoneId;
+  const accountTag = params.accountTag;
+  const startDateStr = params.startDate.toISOString();
+  const endDateStr = params.endDate.toISOString();
+
   // Generate cache key based on params
   const getCacheKey = useCallback(() => {
-    const { zoneId, startDate, endDate } = params;
-    return `${CACHE_KEY_PREFIX}${zoneId}_${startDate.toISOString()}_${endDate.toISOString()}`;
-  }, [params]);
+    return `${CACHE_KEY_PREFIX}${zoneId}_${startDateStr}_${endDateStr}`;
+  }, [zoneId, accountTag, startDateStr, endDateStr]);
 
   // Fetch data from API or cache
   const fetchData = useCallback(async (forceRefresh: boolean = false) => {
@@ -89,7 +94,7 @@ export function useProtocolDistribution(
     } finally {
       setLoading(false);
     }
-  }, [params, getCacheKey]);
+  }, [zoneId, accountTag, startDateStr, endDateStr, getCacheKey]);
 
   // Refresh function that forces a fresh fetch
   const refresh = useCallback(async () => {

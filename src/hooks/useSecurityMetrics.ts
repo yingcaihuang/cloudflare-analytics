@@ -41,7 +41,7 @@ export function useSecurityMetrics(
   const getCacheKey = useCallback(() => {
     const { zoneId, startDate, endDate } = params;
     return `${CACHE_KEY_PREFIX}${zoneId}_${startDate.toISOString()}_${endDate.toISOString()}`;
-  }, [params]);
+  }, [params.zoneId, params.accountTag, params.startDate.getTime(), params.endDate.getTime()]);
 
   // Fetch data from API or cache
   const fetchData = useCallback(async (forceRefresh: boolean = false) => {
@@ -89,7 +89,7 @@ export function useSecurityMetrics(
     } finally {
       setLoading(false);
     }
-  }, [params, getCacheKey]);
+  }, [params.zoneId, params.accountTag, params.startDate.getTime(), params.endDate.getTime(), getCacheKey]);
 
   // Refresh function that forces a fresh fetch
   const refresh = useCallback(async () => {
