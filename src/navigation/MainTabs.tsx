@@ -2,7 +2,7 @@ import React from 'react';
 import { Text } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
-import { HomeScreen, DashboardScreen, CustomDashboardScreen, StatusCodesScreen, SecurityScreen, MoreScreen, LayoutManagerScreen } from '../screens';
+import { HomeScreen, DashboardScreen, CustomDashboardScreen, SecurityScreen, SettingsScreen, LayoutManagerScreen, AnalyticsScreen } from '../screens';
 import { useZone } from '../contexts';
 import type { MainTabParamList } from './types';
 
@@ -94,13 +94,26 @@ export const MainTabs: React.FC = () => {
         {(props) => <SecurityScreen {...props} zoneId={zoneId || ''} />}
       </Tab.Screen>
       <Tab.Screen
-        name="More"
-        component={MoreScreen}
+        name="Analytics"
+        component={AnalyticsScreen}
         options={{
-          title: '更多',
-          tabBarLabel: '更多',
+          title: '分析指标',
+          tabBarLabel: '分析',
+          headerShown: false,
           tabBarIcon: ({ color }) => (
-            <TabIcon name="more" color={color} />
+            <TabIcon name="analytics" color={color} />
+          ),
+        }}
+      />
+      <Tab.Screen
+        name="Settings"
+        component={SettingsScreen}
+        options={{
+          title: '设置',
+          tabBarLabel: '设置',
+          headerShown: false,
+          tabBarIcon: ({ color }) => (
+            <TabIcon name="settings" color={color} />
           ),
         }}
       />
@@ -116,7 +129,8 @@ const TabIcon: React.FC<{ name: string; color: string }> = ({ name, color }) => 
     custom: '⚙️',
     code: '📋',
     shield: '🛡️',
-    more: '⋯',
+    analytics: '📈',
+    settings: '⚙️',
   };
 
   return (

@@ -18,6 +18,7 @@ export { default as AlertConfigScreen } from './AlertConfigScreen';
 export { default as AlertHistoryScreen } from './AlertHistoryScreen';
 export { default as BotAnalysisScreen } from './BotAnalysisScreen';
 export { default as FirewallAnalysisScreen } from './FirewallAnalysisScreen';
-export { default as MoreScreen } from './MoreScreen';
+export { default as SettingsScreen } from './SettingsScreen';
+export { default as AnalyticsScreen } from './AnalyticsScreen';
 export { CustomDashboardScreen } from './CustomDashboardScreen';
 export { LayoutManagerScreen } from './LayoutManagerScreen';

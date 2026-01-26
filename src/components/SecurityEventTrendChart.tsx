@@ -45,7 +45,7 @@ export const SecurityEventTrendChart: React.FC<SecurityEventTrendChartProps> = (
 
   // Format labels (hours)
   const labels = timeSeries.map((point) => {
-    const hour = point.timestamp.getHours();
+    const hour = new Date(point.timestamp).getHours();
     return `${hour.toString().padStart(2, '0')}:00`;
   });
 

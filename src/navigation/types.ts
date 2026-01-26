@@ -13,8 +13,30 @@ export type MainTabParamList = {
   CustomDashboard: undefined;
   StatusCodes: undefined;
   Security: undefined;
-  More: undefined;
+  Analytics: undefined;
+  Settings: undefined;
   LayoutManager: undefined;
+};
+
+// Analytics Stack Navigator (for future nested navigation)
+export type AnalyticsStackParamList = {
+  AnalyticsHome: undefined;
+  GeoDistribution: undefined;
+  ProtocolDistribution: undefined;
+  TLSDistribution: undefined;
+  ContentType: undefined;
+  StatusCodes: undefined;
+  BotAnalysis: undefined;
+  FirewallAnalysis: undefined;
+};
+
+// Settings Stack Navigator (for future nested navigation)
+export type SettingsStackParamList = {
+  SettingsHome: undefined;
+  TokenManagement: undefined;
+  AccountZoneSelection: undefined;
+  AlertConfig: undefined;
+  AlertHistory: undefined;
 };
 
 // Root Stack Navigator
