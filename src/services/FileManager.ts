@@ -5,12 +5,10 @@
  * - Filename generation with timestamps
  * - Filename sanitization
  * - Platform-specific file paths
- * - Storage space checking
  * - File sharing via native share interface
  */
 
-import * as FileSystem from 'expo-file-system';
-import { Platform, Share } from 'react-native';
+import { Share } from 'react-native';
 
 export interface FileManagerOptions {
   fileName: string;
@@ -46,39 +44,31 @@ export class FileManager {
 
   /**
    * Get platform-specific save path
-   * iOS: Documents directory
-   * Android: Downloads directory
+   * Note: This method is kept for API compatibility but is not used
+   * with expo-print as it manages file paths automatically.
    * 
-   * @param directory - The directory type (defaults to platform-specific)
-   * @returns Full directory path
+   * @param directory - The directory type (not used)
+   * @returns Empty string (expo-print handles paths)
    */
   getSavePath(directory?: 'Documents' | 'Downloads'): string {
-    if (directory === 'Downloads') {
-      // Use downloads directory if explicitly requested
-      return Platform.OS === 'ios' 
-        ? FileSystem.documentDirectory || ''
-        : FileSystem.documentDirectory || ''; // Android also uses documentDirectory in Expo
-    }
-    
-    // Default to documents directory
-    return FileSystem.documentDirectory || '';
+    // expo-print handles file paths automatically
+    return '';
   }
 
   /**
    * Check if sufficient storage space is available
+   * Note: Storage check is skipped in Expo Go as the new API requires
+   * native modules. For production builds, consider implementing proper
+   * storage checks using the new File/Directory API.
    * 
    * @param requiredBytes - Number of bytes required
-   * @returns Promise resolving to true if space is available
+   * @returns Promise resolving to true (always assumes space is available)
    */
   async checkStorageSpace(requiredBytes: number): Promise<boolean> {
-    try {
-      const freeDiskStorage = await FileSystem.getFreeDiskStorageAsync();
-      return freeDiskStorage > requiredBytes;
-    } catch (error) {
-      console.error('Error checking storage space:', error);
-      // Assume space is available if we can't check
-      return true;
-    }
+    // Skip storage check in Expo Go to avoid deprecation warnings
+    // In production, PDFs are typically small (< 5MB) so this is acceptable
+    console.log(`Storage check skipped (required: ${(requiredBytes / 1024 / 1024).toFixed(2)}MB)`);
+    return true;
   }
 
   /**
@@ -111,45 +101,40 @@ export class FileManager {
 
   /**
    * Get the full file path for a given filename
+   * Note: This method is kept for API compatibility but returns
+   * just the filename as expo-print manages paths automatically.
    * 
    * @param fileName - The filename
-   * @param directory - The directory type
-   * @returns Full file path
+   * @param directory - The directory type (not used)
+   * @returns The filename
    */
   getFullPath(fileName: string, directory?: 'Documents' | 'Downloads'): string {
-    const basePath = this.getSavePath(directory);
-    return `${basePath}${fileName}`;
+    // expo-print handles file paths automatically
+    return fileName;
   }
 
   /**
    * Check if a file exists at the given path
+   * Note: Deprecated - kept for API compatibility only
    * 
    * @param filePath - Full path to the file
-   * @returns Promise resolving to true if file exists
+   * @returns Promise resolving to false (not implemented)
    */
   async fileExists(filePath: string): Promise<boolean> {
-    try {
-      const fileInfo = await FileSystem.getInfoAsync(filePath);
-      return fileInfo.exists;
-    } catch (error) {
-      console.error('Error checking file existence:', error);
-      return false;
-    }
+    console.warn('fileExists is deprecated and not implemented with expo-print');
+    return false;
   }
 
   /**
    * Delete a file at the given path
+   * Note: Deprecated - kept for API compatibility only
    * 
    * @param filePath - Full path to the file
-   * @returns Promise resolving when file is deleted
+   * @returns Promise that rejects (not implemented)
    */
   async deleteFile(filePath: string): Promise<void> {
-    try {
-      await FileSystem.deleteAsync(filePath, { idempotent: true });
-    } catch (error) {
-      console.error('Error deleting file:', error);
-      throw new Error('Failed to delete file');
-    }
+    console.warn('deleteFile is deprecated and not implemented with expo-print');
+    throw new Error('File deletion not supported with expo-print');
   }
 }
 

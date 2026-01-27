@@ -111,6 +111,17 @@ class PDFExportService {
       this.updateProgress(options, 20, 'Fetching analytics data...');
       const data = await this.aggregateData(options);
       
+      // Debug: Log aggregated data
+      console.log('📊 Aggregated data:', JSON.stringify(data, null, 2));
+      
+      // Debug: Log geo data structure specifically
+      if (data.geo) {
+        console.log('🗺️ Geo data type:', typeof data.geo);
+        console.log('🗺️ Geo data is array:', Array.isArray(data.geo));
+        console.log('🗺️ Geo data keys:', Object.keys(data.geo));
+        console.log('🗺️ Geo data sample:', JSON.stringify(data.geo).substring(0, 200));
+      }
+      
       // Step 4: Validate data
       this.updateProgress(options, 60, 'Validating data...');
       if (!this.isValidData(data, options.exportType)) {

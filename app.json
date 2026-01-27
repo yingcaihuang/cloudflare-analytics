@@ -2,7 +2,7 @@
   "expo": {
     "name": "Cloudflare Analytics",
     "slug": "cloudflare-analytics",
-    "version": "1.0.1",
+    "version": "1.0.2",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -13,7 +13,10 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.cloudflare.analytics"
+      "bundleIdentifier": "com.cloudflare.analytics",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {

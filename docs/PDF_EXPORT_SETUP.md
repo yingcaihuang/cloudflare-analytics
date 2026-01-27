@@ -1,166 +1,113 @@
-# PDF Export Infrastructure Setup
+# PDF Export Setup Guide
+
+This document explains the PDF export functionality and how to test it.
 
 ## Overview
 
-This document describes the PDF export infrastructure setup for the Cloudflare Analytics mobile application. The infrastructure supports generating PDF documents from analytics data with comprehensive testing capabilities.
+The PDF export feature uses **`expo-print`**, an official Expo SDK module that converts HTML to PDF. This works seamlessly in both Expo Go and production builds.
 
-## Installed Dependencies
+## Dependencies
 
-### Production Dependencies
+The following packages are required:
 
-1. **react-native-html-to-pdf** (v1.3.0)
-   - Purpose: Convert HTML content to PDF documents on iOS and Android
-   - Usage: Core PDF generation functionality
-   - Platform Support: iOS and Android
-   - Documentation: https://github.com/christopherdro/react-native-html-to-pdf
-
-### Development Dependencies
-
-1. **fast-check** (v4.5.3)
-   - Purpose: Property-based testing library for TypeScript/JavaScript
-   - Usage: Verify correctness properties across randomized inputs
-   - Configuration: Configured to run 100 iterations per property test by default
-   - Documentation: https://fast-check.dev/
-
-2. **pdf-parse** (v2.4.5)
-   - Purpose: Parse PDF files to extract text and metadata
-   - Usage: Verify PDF content in tests
-   - Documentation: https://www.npmjs.com/package/pdf-parse
-
-3. **@types/react-native-html-to-pdf** (v0.8.3)
-   - Purpose: TypeScript type definitions for react-native-html-to-pdf
-   - Usage: Type safety and IDE autocomplete
-
-4. **@types/pdf-parse** (v1.1.5)
-   - Purpose: TypeScript type definitions for pdf-parse
-   - Usage: Type safety and IDE autocomplete
-
-## Configuration
-
-### TypeScript Configuration
-
-Custom type declarations have been added in `src/types/react-native-html-to-pdf.d.ts` to extend the library types with additional options:
-
-```typescript
-interface Options {
-  html: string;
-  fileName: string;
-  directory?: 'Documents' | 'Downloads';
-  base64?: boolean;
-  width?: number;
-  height?: number;
-  padding?: number;
-  bgColor?: string;
+```json
+{
+  "expo-print": "~14.0.8",
+  "expo-sharing": "~13.0.5",
+  "expo-file-system": "~19.0.21"
 }
 ```
 
-### Jest Configuration
+These are all official Expo SDK modules and work in:
+- ✅ Expo Go
+- ✅ Development builds
+- ✅ Production builds (Android APK/AAB, iOS IPA)
 
-The Jest setup file (`jest.setup.js`) has been updated to configure fast-check for property-based testing:
+## How It Works
 
-- Default number of runs: 100 iterations per property test
-- Verbose mode: Disabled (can be enabled for debugging)
+1. **HTML Generation**: `PDFGenerator` creates styled HTML from analytics data
+2. **PDF Rendering**: `expo-print` converts HTML to PDF
+3. **File Management**: `expo-file-system` handles file operations
+4. **Sharing**: `expo-sharing` allows users to share/save the PDF
 
-### Test Organization
+## Testing
 
-Tests are organized in the `__tests__` directories following the existing pattern:
-
-- Unit tests: Specific examples and edge cases
-- Property tests: Universal properties across all inputs
-- Integration tests: End-to-end workflows
-
-## Verification
-
-A setup verification test has been created at `src/services/__tests__/pdf-setup.test.ts` that confirms:
-
-1. fast-check is available and functional
-2. Property tests can run with configured iterations
-3. TypeScript types are properly configured
-4. String and record generators work correctly
-
-Run the verification test:
-
+### In Expo Go
 ```bash
-npm test -- src/services/__tests__/pdf-setup.test.ts
+npm start
+# Scan QR code with Expo Go app
+# Navigate to any analytics screen
+# Tap the export button
 ```
 
-## Platform-Specific Considerations
+### In Development Build
+```bash
+npx eas build --platform android --profile development
+# Install the APK
+# Test PDF export functionality
+```
 
-### iOS
+### In Production Build
+```bash
+# Android
+npx eas build --platform android --profile preview
 
-- PDFs are saved to the Documents directory by default
-- Uses native iOS PDF rendering capabilities
-- Requires no additional permissions
+# iOS
+npx eas build --platform ios --profile preview
+```
 
-### Android
+## File Locations
 
-- PDFs are saved to the Downloads directory by default
-- Uses native Android PDF rendering capabilities
-- May require WRITE_EXTERNAL_STORAGE permission on older Android versions
+PDFs are saved to:
+- **Android**: `file:///data/user/0/com.cloudflare.analytics/files/`
+- **iOS**: App's Documents directory
 
-## Next Steps
-
-With the infrastructure in place, the following components can now be implemented:
-
-1. FileManager utility class for file operations
-2. PDFGenerator class for HTML template generation
-3. PDFExportService for orchestration
-4. UI components for export functionality
-
-## Testing Strategy
-
-The PDF export feature uses a dual testing approach:
-
-1. **Unit Tests**: Verify specific examples, edge cases, and error conditions
-2. **Property Tests**: Verify universal properties hold across all valid inputs
-
-Each property test:
-- Runs 100 iterations with randomized inputs
-- References its corresponding design document property
-- Uses the tag format: `Feature: pdf-export-feature, Property {number}: {property_text}`
+Users can access files through:
+- Share dialog (immediate)
+- Files app (persistent storage)
 
 ## Troubleshooting
 
-### Native Module Linking
+### PDF Not Generating
+- Check console for errors
+- Verify data is loaded before export
+- Ensure sufficient storage space
 
-If you encounter issues with react-native-html-to-pdf:
+### Styling Issues
+- HTML/CSS is rendered by platform's print engine
+- Test on actual devices for accurate rendering
+- Avoid complex CSS features
 
-1. Clean the build cache:
-   ```bash
-   npm run clean-cache
-   ```
+### Performance
+- Large datasets may take 10-30 seconds
+- Progress indicator shows status
+- Timeout warning appears after 30 seconds
 
-2. Rebuild the native modules:
-   ```bash
-   cd ios && pod install && cd ..
-   ```
+## Architecture
 
-3. For Android, clean and rebuild:
-   ```bash
-   cd android && ./gradlew clean && cd ..
-   ```
+```
+PDFExportService (Orchestration)
+  ├── Data Aggregation (GraphQLClient)
+  ├── HTML Generation (PDFGenerator)
+  ├── PDF Rendering (expo-print)
+  └── File Management (FileManager)
+```
 
-### Type Errors
+## Migration from react-native-html-to-pdf
 
-If TypeScript cannot find the types:
+This project previously used `react-native-html-to-pdf`, which required native linking and didn't work in Expo Go. We migrated to `expo-print` for better compatibility:
 
-1. Ensure `src/types/react-native-html-to-pdf.d.ts` exists
-2. Check that `tsconfig.json` includes the `src` directory
-3. Restart the TypeScript server in your IDE
+**Benefits:**
+- ✅ Works in Expo Go
+- ✅ No native configuration needed
+- ✅ Official Expo support
+- ✅ Consistent cross-platform behavior
+- ✅ Simpler setup and maintenance
 
-### Test Failures
+## Related Files
 
-If property tests fail unexpectedly:
-
-1. Check the failing example provided by fast-check
-2. Verify the property definition is correct
-3. Ensure generators produce valid inputs
-4. Increase verbosity: `{ verbose: true }` in test options
-
-## Resources
-
-- [React Native HTML to PDF Documentation](https://github.com/christopherdro/react-native-html-to-pdf)
-- [fast-check Documentation](https://fast-check.dev/)
-- [Property-Based Testing Guide](https://fast-check.dev/docs/introduction/)
-- [PDF Export Feature Design Document](../.kiro/specs/pdf-export-feature/design.md)
-- [PDF Export Feature Requirements](../.kiro/specs/pdf-export-feature/requirements.md)
+- `src/services/PDFExportService.ts` - Main export orchestration
+- `src/services/PDFGenerator.ts` - HTML/PDF generation
+- `src/services/FileManager.ts` - File operations
+- `src/components/ExportButton.tsx` - UI component
+- `src/screens/AdvancedExportScreen.tsx` - Export configuration screen

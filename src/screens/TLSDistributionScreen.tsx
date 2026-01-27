@@ -18,7 +18,8 @@ import {
 import { useTLSDistribution } from '../hooks/useTLSDistribution';
 import { useZone } from '../contexts/ZoneContext';
 import { MetricsQueryParams } from '../types';
-import { PieChart, PieChartDataItem, ExportButton } from '../components/PieChart';
+import { PieChart, PieChartDataItem } from '../components/PieChart';
+import ExportButton from '../components/ExportButton';
 import { useTheme } from '../contexts/ThemeContext';
 
 interface TLSStats {

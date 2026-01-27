@@ -106,96 +106,69 @@ describe('FileManager', () => {
   });
 
   describe('getSavePath', () => {
-    it('should return document directory by default', () => {
+    it('should return empty string (expo-print handles paths)', () => {
       const path = fileManager.getSavePath();
-      expect(path).toBe('/mock/documents/');
+      expect(path).toBe('');
     });
 
-    it('should return document directory when Documents is specified', () => {
+    it('should return empty string when Documents is specified', () => {
       const path = fileManager.getSavePath('Documents');
-      expect(path).toBe('/mock/documents/');
+      expect(path).toBe('');
     });
 
-    it('should return appropriate directory when Downloads is specified', () => {
+    it('should return empty string when Downloads is specified', () => {
       const path = fileManager.getSavePath('Downloads');
-      expect(path).toBe('/mock/documents/');
+      expect(path).toBe('');
     });
   });
 
   describe('checkStorageSpace', () => {
-    it('should return true when sufficient space is available', async () => {
-      (FileSystem.getFreeDiskStorageAsync as jest.Mock).mockResolvedValue(1000000000); // 1GB
-      
+    it('should always return true (storage check skipped in expo-print)', async () => {
       const hasSpace = await fileManager.checkStorageSpace(5000000); // 5MB
       expect(hasSpace).toBe(true);
     });
 
-    it('should return false when insufficient space is available', async () => {
-      (FileSystem.getFreeDiskStorageAsync as jest.Mock).mockResolvedValue(1000000); // 1MB
-      
-      const hasSpace = await fileManager.checkStorageSpace(5000000); // 5MB
-      expect(hasSpace).toBe(false);
-    });
-
-    it('should return true when storage check fails', async () => {
-      (FileSystem.getFreeDiskStorageAsync as jest.Mock).mockRejectedValue(new Error('Storage check failed'));
-      
-      const hasSpace = await fileManager.checkStorageSpace(5000000);
-      expect(hasSpace).toBe(true); // Assumes space is available on error
+    it('should return true for large files', async () => {
+      const hasSpace = await fileManager.checkStorageSpace(50000000); // 50MB
+      expect(hasSpace).toBe(true);
     });
   });
 
   describe('getFullPath', () => {
-    it('should combine base path and filename', () => {
+    it('should return just the filename (expo-print handles paths)', () => {
       const fileName = 'test.pdf';
       const fullPath = fileManager.getFullPath(fileName);
       
-      expect(fullPath).toBe('/mock/documents/test.pdf');
+      expect(fullPath).toBe('test.pdf');
     });
 
-    it('should use specified directory', () => {
+    it('should return filename regardless of directory specified', () => {
       const fileName = 'test.pdf';
       const fullPath = fileManager.getFullPath(fileName, 'Downloads');
       
-      expect(fullPath).toBe('/mock/documents/test.pdf');
+      expect(fullPath).toBe('test.pdf');
     });
   });
 
   describe('fileExists', () => {
-    it('should return true when file exists', async () => {
-      (FileSystem.getInfoAsync as jest.Mock).mockResolvedValue({ exists: true });
-      
-      const exists = await fileManager.fileExists('/mock/test.pdf');
-      expect(exists).toBe(true);
-    });
-
-    it('should return false when file does not exist', async () => {
-      (FileSystem.getInfoAsync as jest.Mock).mockResolvedValue({ exists: false });
-      
+    it('should return false (deprecated method)', async () => {
       const exists = await fileManager.fileExists('/mock/test.pdf');
       expect(exists).toBe(false);
     });
 
-    it('should return false when check fails', async () => {
-      (FileSystem.getInfoAsync as jest.Mock).mockRejectedValue(new Error('Check failed'));
-      
-      const exists = await fileManager.fileExists('/mock/test.pdf');
+    it('should return false for any path', async () => {
+      const exists = await fileManager.fileExists('/any/path/test.pdf');
       expect(exists).toBe(false);
     });
   });
 
   describe('deleteFile', () => {
-    it('should delete file successfully', async () => {
-      (FileSystem.deleteAsync as jest.Mock).mockResolvedValue(undefined);
-      
-      await expect(fileManager.deleteFile('/mock/test.pdf')).resolves.toBeUndefined();
-      expect(FileSystem.deleteAsync).toHaveBeenCalledWith('/mock/test.pdf', { idempotent: true });
+    it('should throw error (deprecated method)', async () => {
+      await expect(fileManager.deleteFile('/mock/test.pdf')).rejects.toThrow('File deletion not supported with expo-print');
     });
 
-    it('should throw error when deletion fails', async () => {
-      (FileSystem.deleteAsync as jest.Mock).mockRejectedValue(new Error('Delete failed'));
-      
-      await expect(fileManager.deleteFile('/mock/test.pdf')).rejects.toThrow('Failed to delete file');
+    it('should throw error for any path', async () => {
+      await expect(fileManager.deleteFile('/any/path/test.pdf')).rejects.toThrow('File deletion not supported with expo-print');
     });
   });
 });

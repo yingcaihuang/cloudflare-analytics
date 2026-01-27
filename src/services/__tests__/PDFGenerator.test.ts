@@ -493,6 +493,86 @@ describe('PDFGenerator', () => {
     });
   });
 
+  describe('Data Format Handling', () => {
+    it('should handle status codes with breakdown format', () => {
+      const options: PDFGeneratorOptions = {
+        data: {
+          statusCodes: {
+            total: 153,
+            status2xx: 149,
+            status3xx: 0,
+            status4xx: 4,
+            status5xx: 0,
+            breakdown: {
+              '200': 147,
+              '204': 2,
+              '404': 4,
+            },
+          },
+        },
+        zoneInfo: mockZoneInfo,
+        timeRange: mockTimeRange,
+        exportType: 'statusCodes',
+        theme: mockTheme,
+      };
+
+      const html = generator.generateHTML(options);
+
+      expect(html).toContain('Status Code Distribution');
+      expect(html).toContain('200');
+      expect(html).toContain('204');
+      expect(html).toContain('404');
+    });
+
+    it('should handle protocol with aggregated format', () => {
+      const options: PDFGeneratorOptions = {
+        data: {
+          protocol: {
+            http1_0: 0,
+            http1_1: 3449,
+            http2: 57,
+            http3: 137,
+            total: 3643,
+          },
+        },
+        zoneInfo: mockZoneInfo,
+        timeRange: mockTimeRange,
+        exportType: 'protocol',
+        theme: mockTheme,
+      };
+
+      const html = generator.generateHTML(options);
+
+      expect(html).toContain('Protocol Distribution');
+      expect(html).toContain('HTTP/1.1');
+      expect(html).toContain('HTTP/2');
+      expect(html).toContain('HTTP/3');
+    });
+
+    it('should handle geo with countries format', () => {
+      const options: PDFGeneratorOptions = {
+        data: {
+          geo: {
+            countries: [
+              { code: 'US', country: 'United States', requests: 1000 },
+              { code: 'UK', country: 'United Kingdom', requests: 500 },
+            ],
+          },
+        },
+        zoneInfo: mockZoneInfo,
+        timeRange: mockTimeRange,
+        exportType: 'geo',
+        theme: mockTheme,
+      };
+
+      const html = generator.generateHTML(options);
+
+      expect(html).toContain('Geographic Distribution');
+      expect(html).toContain('United States');
+      expect(html).toContain('United Kingdom');
+    });
+  });
+
   describe('buildGeoDistributionSection', () => {
     it('should create geographic distribution section', () => {
       const data = [
@@ -695,6 +775,10 @@ describe('PDFGenerator', () => {
 
   describe('renderPDF', () => {
     it('should handle PDF generation errors gracefully', async () => {
+      // Mock expo-print to throw an error
+      const { printToFileAsync } = require('expo-print');
+      printToFileAsync.mockRejectedValueOnce(new Error('Print failed'));
+
       const html = '<html><body>Test PDF</body></html>';
       const fileName = 'test.pdf';
 

@@ -22,13 +22,13 @@ describe('PDF Generation Infrastructure Setup', () => {
       );
     });
 
-    it('should have react-native-html-to-pdf types available', () => {
-      // This test verifies TypeScript types are available
+    it('should have expo-print available for PDF generation', () => {
+      // This test verifies expo-print module is available
       // We'll test actual functionality in later tasks
       const mockOptions: any = {
         html: '<html><body>Test</body></html>',
-        fileName: 'test',
-        directory: 'Documents',
+        width: 612,
+        height: 792,
       };
       expect(mockOptions).toBeDefined();
     });

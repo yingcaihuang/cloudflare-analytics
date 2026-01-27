@@ -95,7 +95,38 @@ export class PDFGenerator {
     // Clear caches for fresh generation
     this.clearCache();
     
-    const { zoneInfo, timeRange, data, theme, exportType } = options;
+    const { zoneInfo, timeRange, data, theme } = options;
+
+    // Debug: Log data structure
+    console.log('🔍 PDF Generator - Data check:', {
+      hasTraffic: !!data.traffic,
+      hasSecurity: !!data.security,
+      hasStatusCodes: !!data.statusCodes,
+      statusCodesIsArray: Array.isArray(data.statusCodes),
+      statusCodesHasDistribution: !!(data.statusCodes as any)?.distribution,
+      statusCodesHasCodes: !!(data.statusCodes as any)?.codes,
+      statusCodesHasBreakdown: !!(data.statusCodes as any)?.breakdown,
+      statusCodesLength: Array.isArray(data.statusCodes) 
+        ? data.statusCodes.length 
+        : (Array.isArray((data.statusCodes as any)?.distribution) 
+            ? (data.statusCodes as any).distribution.length 
+            : (Array.isArray((data.statusCodes as any)?.codes) 
+                ? (data.statusCodes as any).codes.length 
+                : ((data.statusCodes as any)?.breakdown 
+                    ? Object.keys((data.statusCodes as any).breakdown).length
+                    : 0))),
+      hasGeo: !!data.geo,
+      geoIsArray: Array.isArray(data.geo),
+      geoHasDistribution: !!(data.geo as any)?.distribution,
+      geoHasCountries: !!(data.geo as any)?.countries,
+      geoLength: Array.isArray(data.geo) 
+        ? data.geo.length 
+        : (Array.isArray((data.geo as any)?.distribution) 
+            ? (data.geo as any).distribution.length 
+            : (Array.isArray((data.geo as any)?.countries) 
+                ? (data.geo as any).countries.length 
+                : 0)),
+    });
 
     const styles = this.generateStyles(theme);
     const header = this.buildHeaderSection(zoneInfo, timeRange);
@@ -105,48 +136,143 @@ export class PDFGenerator {
 
     // Add traffic section if available
     if (data.traffic) {
+      console.log('✅ Adding traffic section');
       body += this.buildTrafficSection(data.traffic);
     }
 
     // Add security section if available
     if (data.security) {
+      console.log('✅ Adding security section');
       body += this.buildSecuritySection(data.security);
     }
 
     // Add status code distribution if available
-    if (data.statusCodes && Array.isArray(data.statusCodes)) {
-      body += this.buildStatusCodeSection(data.statusCodes, theme);
+    if (data.statusCodes) {
+      let statusCodesData;
+      
+      if (Array.isArray(data.statusCodes)) {
+        // Already an array
+        statusCodesData = data.statusCodes;
+      } else if ((data.statusCodes as any).distribution || (data.statusCodes as any).codes) {
+        // Has distribution or codes property
+        statusCodesData = (data.statusCodes as any).distribution || (data.statusCodes as any).codes;
+      } else if ((data.statusCodes as any).breakdown) {
+        // Aggregated format with breakdown: {total: 153, status2xx: 149, breakdown: {"200": 147, "204": 2}}
+        // Convert breakdown object to array format
+        const breakdown = (data.statusCodes as any).breakdown;
+        statusCodesData = Object.keys(breakdown).map(code => ({
+          statusCode: code,
+          code: code,
+          requests: breakdown[code],
+          count: breakdown[code],
+        }));
+      }
+      
+      if (statusCodesData && Array.isArray(statusCodesData) && statusCodesData.length > 0) {
+        console.log('✅ Adding status codes section');
+        body += this.buildStatusCodeSection(statusCodesData, theme);
+      }
     }
 
     // Add geographic distribution if available
-    if (data.geo && Array.isArray(data.geo)) {
-      body += this.buildGeoDistributionSection(data.geo, theme);
+    if (data.geo) {
+      // Handle multiple possible formats: array, {distribution: []}, {countries: []}
+      const geoData = Array.isArray(data.geo) 
+        ? data.geo 
+        : ((data.geo as any).distribution || (data.geo as any).countries);
+      if (geoData && Array.isArray(geoData) && geoData.length > 0) {
+        console.log('✅ Adding geo section');
+        body += this.buildGeoDistributionSection(geoData, theme);
+      }
     }
 
     // Add protocol distribution if available
-    if (data.protocol && Array.isArray(data.protocol)) {
-      body += this.buildProtocolDistributionSection(data.protocol, theme);
+    if (data.protocol) {
+      let protocolData;
+      
+      if (Array.isArray(data.protocol)) {
+        // Already an array
+        protocolData = data.protocol;
+      } else if ((data.protocol as any).distribution || (data.protocol as any).protocols) {
+        // Has distribution or protocols property
+        protocolData = (data.protocol as any).distribution || (data.protocol as any).protocols;
+      } else if (typeof data.protocol === 'object') {
+        // Aggregated format: {http1_0: 0, http1_1: 3449, http2: 57, http3: 137, total: 3643}
+        // Convert to array format
+        const protocolObj = data.protocol as any;
+        protocolData = Object.keys(protocolObj)
+          .filter(key => key !== 'total' && key !== '__typename')
+          .map(key => ({
+            protocol: key.replace(/_/g, '.').replace('http', 'HTTP/'),
+            clientRequestHTTPProtocol: key.replace(/_/g, '.').replace('http', 'HTTP/'),
+            requests: protocolObj[key],
+            count: protocolObj[key],
+          }))
+          .filter(item => item.requests > 0);
+      }
+      
+      if (protocolData && Array.isArray(protocolData) && protocolData.length > 0) {
+        console.log('✅ Adding protocol section');
+        body += this.buildProtocolDistributionSection(protocolData, theme);
+      }
     }
 
     // Add TLS distribution if available
-    if (data.tls && Array.isArray(data.tls)) {
-      body += this.buildTLSDistributionSection(data.tls, theme);
+    if (data.tls) {
+      let tlsData;
+      
+      if (Array.isArray(data.tls)) {
+        // Already an array
+        tlsData = data.tls;
+      } else if ((data.tls as any).distribution || (data.tls as any).versions) {
+        // Has distribution or versions property
+        tlsData = (data.tls as any).distribution || (data.tls as any).versions;
+      } else if (typeof data.tls === 'object') {
+        // Aggregated format: {tls1_0: 0, tls1_1: 10, tls1_2: 100, tls1_3: 200, total: 310}
+        // Convert to array format
+        const tlsObj = data.tls as any;
+        tlsData = Object.keys(tlsObj)
+          .filter(key => key !== 'total' && key !== '__typename')
+          .map(key => ({
+            tlsVersion: key.replace(/_/g, '.').toUpperCase(),
+            clientSSLProtocol: key.replace(/_/g, '.').toUpperCase(),
+            requests: tlsObj[key],
+            count: tlsObj[key],
+          }))
+          .filter(item => item.requests > 0);
+      }
+      
+      if (tlsData && Array.isArray(tlsData) && tlsData.length > 0) {
+        console.log('✅ Adding TLS section');
+        body += this.buildTLSDistributionSection(tlsData, theme);
+      }
     }
 
     // Add content type distribution if available
-    if (data.contentType && Array.isArray(data.contentType)) {
-      body += this.buildContentTypeSection(data.contentType, theme);
+    if (data.contentType) {
+      // Handle multiple possible formats: array, {distribution: []}, {types: []}
+      const contentTypeData = Array.isArray(data.contentType) 
+        ? data.contentType 
+        : ((data.contentType as any).distribution || (data.contentType as any).types);
+      if (contentTypeData && Array.isArray(contentTypeData) && contentTypeData.length > 0) {
+        console.log('✅ Adding content type section');
+        body += this.buildContentTypeSection(contentTypeData, theme);
+      }
     }
 
     // Add bot analysis if available
     if (data.bot) {
+      console.log('✅ Adding bot analysis section');
       body += this.buildBotAnalysisSection(data.bot, theme);
     }
 
     // Add firewall analysis if available
     if (data.firewall) {
+      console.log('✅ Adding firewall analysis section');
       body += this.buildFirewallAnalysisSection(data.firewall, theme);
     }
+
+    console.log('📄 Generated body length:', body.length);
 
     return `
 <!DOCTYPE html>
@@ -1144,29 +1270,24 @@ export class PDFGenerator {
     directory?: 'Documents' | 'Downloads'
   ): Promise<string> {
     try {
-      // Import react-native-html-to-pdf dynamically
-      const RNHTMLtoPDF = require('react-native-html-to-pdf').default;
+      // Import expo-print
+      const { printToFileAsync } = require('expo-print');
 
-      // Configure PDF options
-      const options = {
-        html: html,
-        fileName: fileName.replace('.pdf', ''), // Library adds .pdf automatically
-        directory: directory || 'Documents',
-        base64: false,
+      // Ensure fileName ends with .pdf
+      const pdfFileName = fileName.endsWith('.pdf') ? fileName : `${fileName}.pdf`;
+
+      // Generate PDF from HTML
+      // expo-print automatically saves to a temporary location
+      const { uri } = await printToFileAsync({
+        html,
         width: 612, // Letter size width in points (8.5 inches)
         height: 792, // Letter size height in points (11 inches)
-        padding: 0, // Padding handled in HTML/CSS
-        bgColor: '#FFFFFF',
-      };
+        base64: false,
+      });
 
-      // Convert HTML to PDF
-      const result = await RNHTMLtoPDF.convert(options);
-
-      if (!result || !result.filePath) {
-        throw new Error('PDF generation failed: No file path returned');
-      }
-
-      return result.filePath;
+      // Return the URI directly - expo-print handles file management
+      // The file is already saved and accessible
+      return uri;
     } catch (error) {
       console.error('Error rendering PDF:', error);
       throw new Error(

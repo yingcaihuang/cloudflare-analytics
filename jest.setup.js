@@ -19,3 +19,10 @@ if (typeof global.fc !== 'undefined') {
     verbose: false,
   });
 }
+
+// Mock expo-print for testing
+jest.mock('expo-print', () => ({
+  printToFileAsync: jest.fn().mockResolvedValue({
+    uri: 'file:///mock/path/test.pdf',
+  }),
+}));
