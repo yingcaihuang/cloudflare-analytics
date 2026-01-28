@@ -148,7 +148,7 @@ class PDFExportService {
         success: '#2ecc71',
         warning: '#f39c12',
         error: '#e74c3c',
-        chartColors: ['#2280b0', '#f6821f', '#2ecc71', '#e74c3c', '#9b59b6', '#3498db'],
+        chartColors: ['#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', '#98D8C8', '#F7DC6F', '#BB8FCE', '#85C1E2', '#F8B739', '#52B788'],
         chartBackground: '#ffffff',
         chartGrid: '#e3e3e3',
         chartLabel: '#333333',

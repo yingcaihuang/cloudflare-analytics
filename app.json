@@ -2,7 +2,7 @@
   "expo": {
     "name": "Cloudflare Analytics",
     "slug": "cloudflare-analytics",
-    "version": "1.0.2",
+    "version": "1.1.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -14,17 +14,32 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.cloudflare.analytics",
+      "buildNumber": "3",
+      "icon": "./assets/icon.png",
       "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false
+        "ITSAppUsesNonExemptEncryption": false,
+        "CFBundleIconFiles": [
+          "AppIcon-20@2x",
+          "AppIcon-20@3x",
+          "AppIcon-29",
+          "AppIcon-29@2x",
+          "AppIcon-29@3x",
+          "AppIcon-40@2x",
+          "AppIcon-40@3x",
+          "AppIcon-60@2x",
+          "AppIcon-60@3x",
+          "AppIcon@2x",
+          "AppIcon@3x"
+        ]
       }
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
+        "foregroundImage": "./assets/icon.png",
         "backgroundColor": "#ffffff"
       },
       "package": "com.cloudflare.analytics",
-      "versionCode": 2,
+      "versionCode": 3,
       "permissions": [
         "INTERNET",
         "ACCESS_NETWORK_STATE"

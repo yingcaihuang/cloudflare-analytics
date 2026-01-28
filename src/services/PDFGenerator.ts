@@ -298,6 +298,7 @@ export class PDFGenerator {
 
   /**
    * Generate CSS styles for consistent formatting
+   * Modern, colorful design optimized for expo-print compatibility
    */
   private generateStyles(theme: ThemeColors): string {
     return `
@@ -311,142 +312,225 @@ export class PDFGenerator {
         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica', 'Arial', sans-serif;
         font-size: 14px;
         line-height: 1.6;
-        color: ${theme.text};
-        background: ${theme.background};
+        color: #2c3e50;
+        background: #f5f7fa;
       }
 
       .header {
         background: ${theme.primary};
         color: white;
-        padding: 30px 20px;
+        padding: 40px 30px;
         margin-bottom: 30px;
+        border-radius: 0 0 20px 20px;
       }
 
       .header h1 {
-        font-size: 24px;
-        font-weight: 600;
-        margin-bottom: 10px;
+        font-size: 32px;
+        font-weight: 700;
+        margin-bottom: 12px;
+        color: white;
       }
 
       .header .zone-info {
-        font-size: 14px;
-        opacity: 0.9;
-        margin-bottom: 5px;
+        font-size: 15px;
+        opacity: 0.95;
+        margin-bottom: 6px;
+        font-weight: 500;
+        color: white;
       }
 
       .header .time-range {
         font-size: 14px;
         opacity: 0.9;
+        font-weight: 400;
+        color: white;
       }
 
       .content {
-        padding: 0 20px 20px;
+        padding: 0 30px 30px;
       }
 
       .section {
-        margin-bottom: 30px;
+        margin-bottom: 35px;
         page-break-inside: avoid;
+        background: white;
+        border-radius: 16px;
+        padding: 25px;
+        border: 1px solid #e3e8ef;
       }
 
       .section h2 {
-        font-size: 20px;
-        font-weight: 600;
-        margin-bottom: 15px;
-        color: ${theme.text};
-        border-bottom: 2px solid ${theme.border};
-        padding-bottom: 8px;
+        font-size: 22px;
+        font-weight: 700;
+        margin-bottom: 20px;
+        color: ${theme.primary};
+        border-bottom: 3px solid ${theme.primary};
+        padding-bottom: 10px;
+        display: inline-block;
       }
 
       .metrics-grid {
         display: grid;
         grid-template-columns: repeat(2, 1fr);
-        gap: 15px;
-        margin-bottom: 20px;
+        gap: 20px;
+        margin-bottom: 25px;
       }
 
       .metric-card {
-        background: white;
-        border: 1px solid ${theme.border};
-        border-radius: 8px;
-        padding: 15px;
+        background: #ffffff;
+        border: 2px solid #e3e8ef;
+        border-left: 4px solid ${theme.primary};
+        border-radius: 12px;
+        padding: 20px;
       }
 
       .metric-label {
-        font-size: 12px;
-        color: #666;
-        margin-bottom: 5px;
+        font-size: 13px;
+        color: #7f8c8d;
+        margin-bottom: 8px;
         text-transform: uppercase;
-        letter-spacing: 0.5px;
+        letter-spacing: 0.8px;
+        font-weight: 600;
       }
 
       .metric-value {
-        font-size: 24px;
-        font-weight: 600;
-        color: ${theme.text};
+        font-size: 28px;
+        font-weight: 700;
+        color: ${theme.primary};
       }
 
       .metric-unit {
-        font-size: 14px;
-        color: #666;
-        margin-left: 4px;
+        font-size: 16px;
+        color: #95a5a6;
+        margin-left: 6px;
+        font-weight: 500;
       }
 
       .footer {
-        margin-top: 40px;
-        padding: 20px;
+        margin-top: 50px;
+        padding: 25px;
         text-align: center;
-        font-size: 12px;
-        color: #666;
-        border-top: 1px solid ${theme.border};
+        font-size: 13px;
+        color: #7f8c8d;
+        border-top: 2px solid #e3e8ef;
+        background: white;
+        border-radius: 16px 16px 0 0;
       }
 
       .chart-container {
-        margin: 20px 0;
+        margin: 25px 0;
         page-break-inside: avoid;
+        background: #ffffff;
+        border-radius: 12px;
+        padding: 20px;
+        border: 1px solid #e3e8ef;
       }
 
       .chart-title {
-        font-size: 16px;
-        font-weight: 600;
-        margin-bottom: 15px;
-        color: ${theme.text};
+        font-size: 18px;
+        font-weight: 700;
+        margin-bottom: 18px;
+        color: #2c3e50;
+        padding-left: 12px;
+        border-left: 4px solid ${theme.primary};
       }
 
       .chart-legend {
-        margin-top: 15px;
+        margin-top: 20px;
         display: grid;
         grid-template-columns: repeat(2, 1fr);
-        gap: 10px;
+        gap: 12px;
+        padding: 15px;
+        background: #f8f9fa;
+        border-radius: 8px;
       }
 
       .legend-item {
         display: flex;
         align-items: center;
-        font-size: 12px;
-        gap: 8px;
+        font-size: 13px;
+        gap: 10px;
+        padding: 8px;
+        background: white;
+        border-radius: 6px;
+        border: 1px solid #e3e8ef;
       }
 
       .legend-color {
-        width: 16px;
-        height: 16px;
-        border-radius: 3px;
+        width: 18px;
+        height: 18px;
+        border-radius: 4px;
         flex-shrink: 0;
       }
 
       .legend-label {
         flex: 1;
-        color: ${theme.text};
+        color: #2c3e50;
+        font-weight: 500;
       }
 
       .legend-value {
-        font-weight: 600;
-        color: ${theme.text};
+        font-weight: 700;
+        color: ${theme.primary};
       }
 
       @media print {
         .section {
           page-break-inside: avoid;
         }
+        
+        body {
+          background: white;
+        }
+      }
+
+      /* Status indicators */
+      .status-success {
+        color: #27ae60;
+        font-weight: 600;
+      }
+
+      .status-warning {
+        color: #f39c12;
+        font-weight: 600;
+      }
+
+      .status-error {
+        color: #e74c3c;
+        font-weight: 600;
+      }
+
+      /* Info boxes */
+      .info-box {
+        background: #e8f4f8;
+        border-left: 4px solid #3498db;
+        padding: 15px 20px;
+        border-radius: 8px;
+        margin: 15px 0;
+      }
+
+      .warning-box {
+        background: #fff3cd;
+        border-left: 4px solid #f39c12;
+        padding: 15px 20px;
+        border-radius: 8px;
+        margin: 15px 0;
+      }
+
+      .error-box {
+        background: #ffe5e5;
+        border-left: 4px solid #e74c3c;
+        padding: 15px 20px;
+        border-radius: 8px;
+        margin: 15px 0;
+      }
+
+      .success-box {
+        background: #d4edda;
+        border-left: 4px solid #27ae60;
+        padding: 15px 20px;
+        border-radius: 8px;
+        margin: 15px 0;
       }
     `;
   }
@@ -643,7 +727,7 @@ export class PDFGenerator {
    */
   buildGeoDistributionSection(data: any[], theme: ThemeColors): string {
     const distributionData: DistributionData[] = data.map((item) => ({
-      label: item.country || item.countryName || item.clientCountryName || 'Unknown',
+      label: item.country || item.countryName || item.name || item.clientCountryName || item.code || 'Unknown',
       value: item.requests || item.count || 0,
     }));
 
@@ -1051,7 +1135,8 @@ export class PDFGenerator {
 
     const { data, title, width = 400, height = 400 } = config;
     const colors = config.colors || theme.chartColors || [
-      '#2280b0', '#f6821f', '#2ecc71', '#e74c3c', '#9b59b6', '#3498db'
+      '#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', '#98D8C8', 
+      '#F7DC6F', '#BB8FCE', '#85C1E2', '#F8B739', '#52B788'
     ];
 
     // Calculate total for percentages
@@ -1137,7 +1222,8 @@ export class PDFGenerator {
 
     const { data, title, width = 600, height = 300 } = config;
     const colors = config.colors || theme.chartColors || [
-      '#2280b0', '#f6821f', '#2ecc71', '#e74c3c', '#9b59b6', '#3498db'
+      '#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', '#98D8C8', 
+      '#F7DC6F', '#BB8FCE', '#85C1E2', '#F8B739', '#52B788'
     ];
 
     if (!data || data.length === 0) {

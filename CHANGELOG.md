@@ -5,6 +5,46 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.0] - 2026-01-27
+
+### Added
+- 🎨 Modern colorful PDF export design
+- 📊 Enhanced PDF report with vibrant colors
+- 🌈 10 new vibrant chart colors for better data visualization
+- 📝 Comprehensive data format support for PDF export
+
+### Fixed
+- 🐛 Fixed PDF export showing empty content
+- 🐛 Fixed component import error in TLSDistributionScreen
+- 🐛 Fixed geographic data showing "Unknown" labels
+- 🐛 Fixed expo-file-system deprecated API warnings
+- 🎨 Fixed PDF styling compatibility with expo-print
+- 📊 Fixed Status Codes breakdown format support
+- 🌍 Fixed Protocol aggregated format support
+- 🔒 Fixed TLS aggregated format support
+
+### Changed
+- 🎨 Updated PDF styles for better expo-print compatibility
+- 🎨 Replaced CSS gradients with solid colors for PDF
+- 🎨 Replaced box-shadow with borders for PDF
+- 📊 Enhanced data format handling (breakdown, aggregated, nested)
+- 🌈 Updated chart color palette to more vibrant colors
+
+### Improved
+- 📄 PDF export now supports 4 Status Codes formats
+- 🌍 PDF export now supports 3 Geographic data formats
+- 🌐 PDF export now supports 3 Protocol data formats
+- 🔒 PDF export now supports 3 TLS data formats
+- 📊 Better field name detection for geographic data
+- ✅ 41/41 tests passing with new test coverage
+
+### Technical
+- Removed unsupported CSS features (linear-gradient, box-shadow, text-shadow)
+- Added support for `breakdown` format in Status Codes
+- Added support for `name` and `code` fields in Geographic data
+- Optimized PDF generation for expo-print compatibility
+- Enhanced error handling and data validation
+
 ## [1.0.0] - 2025-01-21
 
 ### Added
